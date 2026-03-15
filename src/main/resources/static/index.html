@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>农场财务管理系统</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #2e7d32;
+            --secondary-color: #4caf50;
+            --accent-color: #81c784;
+            --sidebar-width: 250px;
+        }
+        body {
+            background-color: #f5f7fa;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+        }
+        
+        /* 登录页样式 */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #2e7d32, #4caf50);
+        }
+        .login-card {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        
+        /* 侧边栏 */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: var(--sidebar-width);
+            height: 100vh;
+            background: linear-gradient(180deg, #1b5e20 0%, #2e7d32 100%);
+            padding: 0;
+            z-index: 1000;
+            overflow-y: auto;
+            transition: transform 0.3s;
+        }
+        .sidebar-brand {
+            padding: 1.5rem;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .sidebar-brand h4 {
+            color: #fff;
+            margin: 0;
+            font-weight: 700;
+        }
+        .sidebar-nav {
+            padding: 1rem 0;
+        }
+        .nav-section {
+            padding: 0.5rem 1rem;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 1rem;
+        }
+        .sidebar-nav .nav-link {
+            color: rgba(255,255,255,0.8);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .sidebar-nav .nav-link:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+        .sidebar-nav .nav-link.active {
+            color: #fff;
+            background: rgba(255,255,255,0.15);
+            border-left-color: #fff;
+        }
+        .sidebar-nav .nav-link i {
+            width: 20px;
+            margin-right: 10px;
+        }
+        
+        /* 主内容区 */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+        }
+        .top-navbar {
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            padding: 0.75rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .content-wrapper {
+            padding: 1.5rem;
+        }
+        
+        /* 卡片样式 */
+        .card {
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+            margin-bottom: 1.5rem;
+        }
+        .card-header {
+            background: #fff;
+            border-bottom: 1px solid #eee;
+            font-weight: 600;
+            padding: 1rem 1.25rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        /* 统计卡片 */
+        .stat-card {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .stat-card .card-body {
+            padding: 1.25rem;
+        }
+        .stat-card .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .stat-card .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+        .stat-card .stat-label {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.875rem;
+        }
+        .bg-gradient-success { background: linear-gradient(135deg, #4caf50, #81c784); }
+        .bg-gradient-warning { background: linear-gradient(135deg, #ff9800, #ffb74d); }
+        .bg-gradient-info { background: linear-gradient(135deg, #2196f3, #64b5f6); }
+        .bg-gradient-purple { background: linear-gradient(135deg, #9c27b0, #ba68c8); }
+        
+        /* 表格样式 */
+        .table th {
+            font-weight: 600;
+            color: #666;
+            border-bottom: 2px solid #eee;
+            background: #fafafa;
+        }
+        .table td {
+            vertical-align: middle;
+        }
+        
+        /* 按钮样式 */
+        .btn-primary {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background: #1b5e20;
+            border-color: #1b5e20;
+        }
+        .btn-outline-primary {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-outline-primary:hover {
+            background: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        
+        /* 状态徽章 */
+        .badge-active { background-color: #4caf50; }
+        .badge-inactive { background-color: #9e9e9e; }
+        .badge-pending { background-color: #ff9800; }
+        .badge-completed { background-color: #2196f3; }
+        
+        /* 页面标题 */
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* 表单样式 */
+        .form-label {
+            font-weight: 500;
+            color: #555;
+        }
+        .form-control:focus, .form-select:focus {
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.2rem rgba(76, 175, 80, 0.25);
+        }
+        
+        /* 页面容器 */
+        .page-container {
+            display: none;
+        }
+        .page-container.active {
+            display: block;
+        }
+        
+        /* 搜索框 */
+        .search-box {
+            position: relative;
+        }
+        .search-box input {
+            padding-left: 2.5rem;
+        }
+        .search-box i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+        }
+        
+        /* 响应式 */
+        @media (max-width: 991px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+            .sidebar.show {
+                transform: translateX(0);
+            }
+            .main-content {
+                margin-left: 0;
+            }
+        }
+        
+        /* 模态框样式 */
+        .modal-header {
+            background: var(--primary-color);
+            color: #fff;
+        }
+        .modal-header .btn-close {
+            filter: brightness(0) invert(1);
+        }
+    </style>
+</head>
+<body>
+    <!-- 登录页面 -->
+    <div id="loginPage" class="login-container">
+        <div class="card login-card">
+            <div class="card-body p-4">
+                <div class="text-center mb-4">
+                    <i class="bi bi-flower1 text-success" style="font-size: 3rem;"></i>
+                    <h3 class="mt-3 mb-1">农场财务管理</h3>
+                    <p class="text-muted">请登录您的账户</p>
+                </div>
+                <form id="loginForm">
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control form-control-lg" id="username" placeholder="请输入用户名" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">密码</label>
+                        <input type="password" class="form-control form-control-lg" id="password" placeholder="请输入密码" required>
+                    </div>
+                    <div id="loginError" class="alert alert-danger d-none" role="alert"></div>
+                    <button type="submit" class="btn btn-success btn-lg w-100 mt-3">
+                        <span id="loginSpinner" class="spinner-border spinner-border-sm d-none me-2"></span>
+                        登录
+                    </button>
+                </form>
+                <div class="text-center mt-3">
+                    <a href="#" onclick="showRegisterModal()">没有账户？点击注册</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 主应用 -->
+    <div id="mainApp" class="d-none">
+        <!-- 侧边栏 -->
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-brand">
+                <h4><i class="bi bi-flower1 me-2"></i>农场财务</h4>
+            </div>
+            <div class="sidebar-nav">
+                <div class="nav-section">主菜单</div>
+                <a href="#" class="nav-link active" data-page="dashboard">
+                    <i class="bi bi-speedometer2"></i>仪表盘
+                </a>
+                
+                <div class="nav-section">基础数据</div>
+                <a href="#" class="nav-link" data-page="customers">
+                    <i class="bi bi-people"></i>客户管理
+                </a>
+                <a href="#" class="nav-link" data-page="suppliers">
+                    <i class="bi bi-truck"></i>供应商管理
+                </a>
+                <a href="#" class="nav-link" data-page="products">
+                    <i class="bi bi-box-seam"></i>产品管理
+                </a>
+                <a href="#" class="nav-link" data-page="chicken-houses">
+                    <i class="bi bi-house-door"></i>鸡舍管理
+                </a>
+                
+                <div class="nav-section">养殖管理</div>
+                <a href="#" class="nav-link" data-page="chicken-batches">
+                    <i class="bi bi-heart-pulse"></i>肉鸡批次
+                </a>
+                <a href="#" class="nav-link" data-page="death-records">
+                    <i class="bi bi-clipboard-x"></i>死亡记录
+                </a>
+                <a href="#" class="nav-link" data-page="feed-records">
+                    <i class="bi bi-bucket"></i>投喂记录
+                </a>
+                <a href="#" class="nav-link" data-page="egg-records">
+                    <i class="bi bi-egg"></i>产蛋记录
+                </a>
+                
+                <div class="nav-section">销售管理</div>
+                <a href="#" class="nav-link" data-page="chicken-sales">
+                    <i class="bi bi-cash-coin"></i>肉鸡销售
+                </a>
+                <a href="#" class="nav-link" data-page="egg-sales">
+                    <i class="bi bi-egg-fried"></i>鸡蛋销售
+                </a>
+                <a href="#" class="nav-link" data-page="sales-orders">
+                    <i class="bi bi-receipt"></i>销售订单
+                </a>
+                
+                <div class="nav-section">采购库存</div>
+                <a href="#" class="nav-link" data-page="purchase-orders">
+                    <i class="bi bi-cart-plus"></i>采购订单
+                </a>
+                <a href="#" class="nav-link" data-page="inventory">
+                    <i class="bi bi-boxes"></i>库存管理
+                </a>
+                
+                <div class="nav-section">财务管理</div>
+                <a href="#" class="nav-link" data-page="finance-records">
+                    <i class="bi bi-wallet2"></i>财务记录
+                </a>
+                <a href="#" class="nav-link" data-page="reports">
+                    <i class="bi bi-graph-up"></i>报表统计
+                </a>
+                
+                <div class="nav-section">系统管理</div>
+                <a href="#" class="nav-link" data-page="users">
+                    <i class="bi bi-person-gear"></i>用户管理
+                </a>
+                <a href="#" class="nav-link" data-page="operation-logs">
+                    <i class="bi bi-journal-text"></i>操作日志
+                </a>
+            </div>
+        </nav>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <!-- 顶部导航 -->
+            <div class="top-navbar d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center">
+                    <button class="btn btn-link text-dark d-lg-none me-2" onclick="toggleSidebar()">
+                        <i class="bi bi-list fs-4"></i>
+                    </button>
+                    <span class="fw-bold" id="pageTitle">仪表盘</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="me-3">
+                        <i class="bi bi-person-circle me-1"></i>
+                        <span id="currentUser">用户</span>
+                    </span>
+                    <button class="btn btn-outline-danger btn-sm" onclick="logout()">
+                        <i class="bi bi-box-arrow-right me-1"></i>退出
+                    </button>
+                </div>
+            </div>
+
+            <!-- 内容容器 -->
+            <div class="content-wrapper">
+                <!-- 仪表盘页面 -->
+                <div id="page-dashboard" class="page-container active"></div>
+                
+                <!-- 客户管理页面 -->
+                <div id="page-customers" class="page-container"></div>
+                
+                <!-- 供应商管理页面 -->
+                <div id="page-suppliers" class="page-container"></div>
+                
+                <!-- 产品管理页面 -->
+                <div id="page-products" class="page-container"></div>
+                
+                <!-- 鸡舍管理页面 -->
+                <div id="page-chicken-houses" class="page-container"></div>
+                
+                <!-- 肉鸡批次页面 -->
+                <div id="page-chicken-batches" class="page-container"></div>
+                
+                <!-- 死亡记录页面 -->
+                <div id="page-death-records" class="page-container"></div>
+                
+                <!-- 投喂记录页面 -->
+                <div id="page-feed-records" class="page-container"></div>
+                
+                <!-- 产蛋记录页面 -->
+                <div id="page-egg-records" class="page-container"></div>
+                
+                <!-- 肉鸡销售页面 -->
+                <div id="page-chicken-sales" class="page-container"></div>
+                
+                <!-- 鸡蛋销售页面 -->
+                <div id="page-egg-sales" class="page-container"></div>
+                
+                <!-- 销售订单页面 -->
+                <div id="page-sales-orders" class="page-container"></div>
+                
+                <!-- 采购订单页面 -->
+                <div id="page-purchase-orders" class="page-container"></div>
+                
+                <!-- 库存管理页面 -->
+                <div id="page-inventory" class="page-container"></div>
+                
+                <!-- 财务记录页面 -->
+                <div id="page-finance-records" class="page-container"></div>
+                
+                <!-- 报表统计页面 -->
+                <div id="page-reports" class="page-container"></div>
+                
+                <!-- 用户管理页面 -->
+                <div id="page-users" class="page-container"></div>
+                
+                <!-- 操作日志页面 -->
+                <div id="page-operation-logs" class="page-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 通用模态框 -->
+    <div class="modal fade" id="formModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="formModalTitle">表单</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="formModalBody"></div>
+                <div class="modal-footer" id="formModalFooter">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="formModalSave">保存</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册模态框 -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">用户注册</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm">
+                        <div class="mb-3">
+                            <label class="form-label">用户名</label>
+                            <input type="text" class="form-control" id="regUsername" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">真实姓名</label>
+                            <input type="text" class="form-control" id="regRealName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">密码</label>
+                            <input type="password" class="form-control" id="regPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">手机号</label>
+                            <input type="text" class="form-control" id="regPhone">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" onclick="handleRegister()">注册</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // ==================== 全局配置 ====================
+        const API_BASE = 'http://localhost:8080/api';
+        let authToken = localStorage.getItem('token');
+        let currentUser = localStorage.getItem('username');
+        let currentPage = 'dashboard';
+
+        // ==================== 初始化 ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            if (authToken) {
+                showMainApp();
+            } else {
+                showLoginPage();
+            }
+            document.getElementById('loginForm').addEventListener('submit', handleLogin);
+            initNavigation();
+        });
+
+        // ==================== 导航初始化 ====================
+        function initNavigation() {
+            document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const page = this.dataset.page;
+                    navigateTo(page);
+                });
+            });
+        }
+
+        function navigateTo(page) {
+            currentPage = page;
+            // 更新导航状态
+            document.querySelectorAll('.nav-link[data-page]').forEach(link => {
+                link.classList.remove('active');
+                if (link.dataset.page === page) {
+                    link.classList.add('active');
+                }
+            });
+            // 切换页面
+            document.querySelectorAll('.page-container').forEach(p => p.classList.remove('active'));
+            const pageEl = document.getElementById(`page-${page}`);
+            if (pageEl) {
+                pageEl.classList.add('active');
+                loadPage(page);
+            }
+            // 更新标题
+            const titles = {
+                'dashboard': '仪表盘', 'customers': '客户管理', 'suppliers': '供应商管理',
+                'products': '产品管理', 'chicken-houses': '鸡舍管理', 'chicken-batches': '肉鸡批次',
+                'death-records': '死亡记录', 'feed-records': '投喂记录', 'egg-records': '产蛋记录',
+                'chicken-sales': '肉鸡销售', 'egg-sales': '鸡蛋销售', 'sales-orders': '销售订单',
+                'purchase-orders': '采购订单', 'inventory': '库存管理', 'finance-records': '财务记录',
+                'reports': '报表统计', 'users': '用户管理', 'operation-logs': '操作日志'
+            };
+            document.getElementById('pageTitle').textContent = titles[page] || page;
+            // 移动端关闭侧边栏
+            if (window.innerWidth < 992) {
+                document.getElementById('sidebar').classList.remove('show');
+            }
+        }
+
+        // ==================== 登录注册 ====================
+        function showLoginPage() {
+            document.getElementById('loginPage').classList.remove('d-none');
+            document.getElementById('mainApp').classList.add('d-none');
+        }
+
+        function showMainApp() {
+            document.getElementById('loginPage').classList.add('d-none');
+            document.getElementById('mainApp').classList.remove('d-none');
+            document.getElementById('currentUser').textContent = currentUser || '用户';
+            navigateTo('dashboard');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const spinner = document.getElementById('loginSpinner');
+            const error = document.getElementById('loginError');
+            
+            spinner.classList.remove('d-none');
+            error.classList.add('d-none');
+
+            try {
+                const res = await fetch(`${API_BASE}/auth/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.code === 200 && data.data?.token) {
+                    authToken = data.data.token;
+                    currentUser = username;
+                    localStorage.setItem('token', authToken);
+                    localStorage.setItem('username', currentUser);
+                    showMainApp();
+                } else {
+                    error.textContent = data.message || '登录失败';
+                    error.classList.remove('d-none');
+                }
+            } catch (err) {
+                error.textContent = '网络错误，请检查后端服务';
+                error.classList.remove('d-none');
+            } finally {
+                spinner.classList.add('d-none');
+            }
+        }
+
+        function logout() {
+            authToken = null;
+            currentUser = null;
+            localStorage.removeItem('token');
+            localStorage.removeItem('username');
+            showLoginPage();
+        }
+
+        function showRegisterModal() {
+            new bootstrap.Modal(document.getElementById('registerModal')).show();
+        }
+
+        async function handleRegister() {
+            const data = {
+                username: document.getElementById('regUsername').value,
+                realName: document.getElementById('regRealName').value,
+                password: document.getElementById('regPassword').value,
+                phone: document.getElementById('regPhone').value
+            };
+            try {
+                const res = await fetch(`${API_BASE}/auth/register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                const result = await res.json();
+                if (result.code === 200) {
+                    alert('注册成功，请登录');
+                    bootstrap.Modal.getInstance(document.getElementById('registerModal')).hide();
+                } else {
+                    alert(result.message || '注册失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
+        }
+
+        // ==================== API请求 ====================
+        async function api(url, options = {}) {
+            const headers = {
+                'Content-Type': 'application/json',
+                ...(authToken && { 'Authorization': `Bearer ${authToken}` }),
+                ...options.headers
+            };
+            try {
+                const res = await fetch(url, { ...options, headers });
+                if (res.status === 401 || res.status === 403) { 
+                    logout(); 
+                    return null; 
+                }
+                if (!res.ok) {
+                    console.error('API Error:', res.status, res.statusText);
+                    return null;
+                }
+                const text = await res.text();
+                return text ? JSON.parse(text) : null;
+            } catch (err) {
+                console.error('API Error:', err);
+                return null;
+            }
+        }
+
+        // ==================== 工具函数 ====================
+        function formatMoney(n) { return '¥' + (Number(n) || 0).toLocaleString('zh-CN', {minimumFractionDigits: 0, maximumFractionDigits: 2}); }
+        function formatDate(d) { return d ? new Date(d).toLocaleDateString('zh-CN') : '-'; }
+        function formatDateTime(d) { return d ? new Date(d).toLocaleString('zh-CN') : '-'; }
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('show'); }
+
+        // ==================== 页面加载器 ====================
+        function loadPage(page) {
+            const loaders = {
+                'dashboard': loadDashboard,
+                'customers': () => loadCrudPage('customers', 'customer', ['客户编号', '客户名称', '联系电话', '地址']),
+                'suppliers': () => loadCrudPage('suppliers', 'supplier', ['供应商编号', '供应商名称', '联系人', '联系电话']),
+                'products': () => loadProductsPage(),
+                'chicken-houses': () => loadCrudPage('chicken-houses', 'chicken-house', ['鸡舍编号', '鸡舍名称', '容量', '状态']),
+                'chicken-batches': () => loadChickenBatchesPage(),
+                'death-records': () => loadDeathRecordsPage(),
+                'feed-records': () => loadFeedRecordsPage(),
+                'egg-records': () => loadEggRecordsPage(),
+                'chicken-sales': () => loadChickenSalesPage(),
+                'egg-sales': () => loadEggSalesPage(),
+                'sales-orders': () => loadSalesOrdersPage(),
+                'purchase-orders': () => loadPurchaseOrdersPage(),
+                'inventory': () => loadInventoryPage(),
+                'finance-records': () => loadFinanceRecordsPage(),
+                'reports': () => loadReportsPage(),
+                'users': () => loadUsersPage(),
+                'operation-logs': () => loadOperationLogsPage()
+            };
+            if (loaders[page]) loaders[page]();
+        }
+
+        // ==================== 仪表盘 ====================
+        async function loadDashboard() {
+            const container = document.getElementById('page-dashboard');
+            container.innerHTML = `
+                <div class="row mb-4">
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-gradient-success text-white">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" id="dash-totalIncome">¥0</div>
+                                    <div class="stat-label">总收入</div>
+                                </div>
+                                <div class="stat-icon bg-white bg-opacity-25"><i class="bi bi-currency-yen"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-gradient-warning text-white">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" id="dash-totalExpense">¥0</div>
+                                    <div class="stat-label">总支出</div>
+                                </div>
+                                <div class="stat-icon bg-white bg-opacity-25"><i class="bi bi-cart-dash"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-gradient-info text-white">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" id="dash-totalStock">0</div>
+                                    <div class="stat-label">当前存栏</div>
+                                </div>
+                                <div class="stat-icon bg-white bg-opacity-25"><i class="bi bi-heart-pulse"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 col-sm-6 mb-3">
+                        <div class="card stat-card bg-gradient-purple text-white">
+                            <div class="card-body d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="stat-value" id="dash-activeBatches">0</div>
+                                    <div class="stat-label">活跃批次</div>
+                                </div>
+                                <div class="stat-icon bg-white bg-opacity-25"><i class="bi bi-layer-group"></i></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">收入支出趋势</div>
+                            <div class="card-body" style="height: 250px; overflow: hidden;"><canvas id="dash-trendChart"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">批次存栏分布</div>
+                            <div class="card-body" style="height: 250px; overflow: hidden;"><canvas id="dash-distChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">最近肉鸡销售</div>
+                            <div class="card-body p-0">
+                                <table class="table mb-0">
+                                    <thead><tr><th>日期</th><th>批次</th><th>数量</th><th>金额</th></tr></thead>
+                                    <tbody id="dash-chickenSales"><tr><td colspan="4" class="text-center py-3 text-muted">加载中...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card">
+                            <div class="card-header">最近鸡蛋销售</div>
+                            <div class="card-body p-0">
+                                <table class="table mb-0">
+                                    <thead><tr><th>日期</th><th>数量</th><th>重量</th><th>金额</th></tr></thead>
+                                    <tbody id="dash-eggSales"><tr><td colspan="4" class="text-center py-3 text-muted">加载中...</td></tr></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 加载数据
+            const today = new Date();
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            
+            // 获取仪表盘概览
+            const overview = await api(`${API_BASE}/reports/dashboard`);
+            if (overview?.data) {
+                document.getElementById('dash-totalIncome').textContent = formatMoney(overview.data.monthIncome);
+                document.getElementById('dash-totalExpense').textContent = formatMoney(overview.data.monthExpense);
+                document.getElementById('dash-totalStock').textContent = (overview.data.totalStock || 0).toLocaleString();
+                document.getElementById('dash-activeBatches').textContent = overview.data.activeBatchCount || 0;
+            }
+            
+            // 销售记录
+            const chickenSales = await api(`${API_BASE}/chicken-sales?page=0&size=5`);
+            const eggSales = await api(`${API_BASE}/egg-sales?page=0&size=5`);
+            
+            document.getElementById('dash-chickenSales').innerHTML = (chickenSales?.data?.content || chickenSales?.data || []).slice(0, 5).map(s => `
+                <tr><td>${formatDate(s.saleDate)}</td><td>${s.batchId || '-'}</td><td>${s.quantity || 0}</td><td class="text-success">${formatMoney(s.totalAmount)}</td></tr>
+            `).join('') || '<tr><td colspan="4" class="text-center py-3 text-muted">暂无数据</td></tr>';
+            
+            document.getElementById('dash-eggSales').innerHTML = (eggSales?.data?.content || eggSales?.data || []).slice(0, 5).map(s => `
+                <tr><td>${formatDate(s.saleDate)}</td><td>${s.saleQuantity || 0}</td><td>${s.saleWeight || 0}斤</td><td class="text-success">${formatMoney(s.totalAmount)}</td></tr>
+            `).join('') || '<tr><td colspan="4" class="text-center py-3 text-muted">暂无数据</td></tr>';
+            
+            // 图表
+            loadDashboardCharts();
+        }
+
+        let dashTrendChart, dashDistChart;
+        async function loadDashboardCharts() {
+            // 趋势图
+            const labels = [], incomeData = [], expenseData = [];
+            for (let i = 6; i >= 0; i--) {
+                const d = new Date(); d.setDate(d.getDate() - i);
+                labels.push(`${d.getMonth()+1}/${d.getDate()}`);
+                const ds = d.toISOString().split('T')[0];
+                const inc = await api(`${API_BASE}/finance-records/sum/income?startDate=${ds}&endDate=${ds}`);
+                const exp = await api(`${API_BASE}/finance-records/sum/cost?startDate=${ds}&endDate=${ds}`);
+                incomeData.push(Number(inc?.data || 0));
+                expenseData.push(Number(exp?.data || 0));
+            }
+            
+            const ctx1 = document.getElementById('dash-trendChart').getContext('2d');
+            if (dashTrendChart) dashTrendChart.destroy();
+            dashTrendChart = new Chart(ctx1, {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [
+                        { label: '收入', data: incomeData, borderColor: '#4caf50', backgroundColor: 'rgba(76,175,80,0.1)', fill: true, tension: 0.4 },
+                        { label: '支出', data: expenseData, borderColor: '#ff9800', backgroundColor: 'rgba(255,152,0,0.1)', fill: true, tension: 0.4 }
+                    ]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    maxHeight: 250,
+                    plugins: { legend: { position: 'bottom' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+            
+            // 分布图
+            const batches = await api(`${API_BASE}/chicken-batches/active`);
+            const activeBatches = (batches?.data || []).filter(b => b.status === 'ACTIVE');
+            const ctx2 = document.getElementById('dash-distChart').getContext('2d');
+            if (dashDistChart) dashDistChart.destroy();
+            dashDistChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: activeBatches.map(b => b.groupName || b.batchNo),
+                    datasets: [{ data: activeBatches.map(b => b.currentQuantity || 0), backgroundColor: ['#4caf50','#2196f3','#ff9800','#9c27b0','#f44336','#00bcd4'] }]
+                },
+                options: { 
+                    responsive: true, 
+                    maintainAspectRatio: false,
+                    maxHeight: 250,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12 } } }
+                }
+            });
+        }
+
+        // ==================== 通用CRUD页面 ====================
+        async function loadCrudPage(endpoint, entity, columns) {
+            const container = document.getElementById(`page-${endpoint}`);
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">
+                        <span>${columns[0]}列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showCrudForm('${endpoint}', '${entity}', null)">
+                            <i class="bi bi-plus-lg me-1"></i>新增
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr>${columns.map(c => `<th>${c}</th>`).join('')}<th>操作</th></tr></thead>
+                                <tbody id="${endpoint}-table"><tr><td colspan="${columns.length + 1}" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 获取活跃数据（未被软删除）
+            const data = await api(`${API_BASE}/${endpoint}/active`);
+            const items = data?.data || [];
+            
+            const tbody = document.getElementById(`${endpoint}-table`);
+            if (items.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="${columns.length + 1}" class="text-center py-4 text-muted">暂无数据</td></tr>`;
+                return;
+            }
+            
+            tbody.innerHTML = items.map(item => {
+                const fields = getEntityFields(entity, item);
+                return `<tr>
+                    ${fields.map(f => `<td>${f}</td>`).join('')}
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showCrudForm('${endpoint}', '${entity}', ${item.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('${endpoint}', ${item.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function getEntityFields(entity, item) {
+            const fieldMaps = {
+                'customer': [item.customerNo || '-', item.name || '-', item.phone || '-', item.address || '-'],
+                'supplier': [item.supplierNo || '-', item.name || '-', item.contactPerson || '-', item.phone || '-'],
+                'chicken-house': [item.houseNo || '-', item.name || '-', item.capacity || 0, `<span class="badge ${item.status === 'ACTIVE' ? 'badge-active' : 'badge-inactive'}">${item.status === 'ACTIVE' ? '使用中' : '空闲'}</span>`]
+            };
+            return fieldMaps[entity] || [];
+        }
+
+        async function showCrudForm(endpoint, entity, id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/${endpoint}/${id}`);
+                item = res?.data || {};
+            }
+            
+            const forms = {
+                'customer': `
+                    <form id="crudForm">
+                        <div class="mb-3"><label class="form-label">客户编号</label><input type="text" class="form-control" name="customerNo" value="${item.customerNo || ''}"></div>
+                        <div class="mb-3"><label class="form-label">客户名称 *</label><input type="text" class="form-control" name="name" value="${item.name || ''}" required></div>
+                        <div class="mb-3"><label class="form-label">联系电话</label><input type="text" class="form-control" name="phone" value="${item.phone || ''}"></div>
+                        <div class="mb-3"><label class="form-label">地址</label><input type="text" class="form-control" name="address" value="${item.address || ''}"></div>
+                    </form>`,
+                'supplier': `
+                    <form id="crudForm">
+                        <div class="mb-3"><label class="form-label">供应商编号</label><input type="text" class="form-control" name="supplierNo" value="${item.supplierNo || ''}"></div>
+                        <div class="mb-3"><label class="form-label">供应商名称 *</label><input type="text" class="form-control" name="name" value="${item.name || ''}" required></div>
+                        <div class="mb-3"><label class="form-label">联系人</label><input type="text" class="form-control" name="contactPerson" value="${item.contactPerson || ''}"></div>
+                        <div class="mb-3"><label class="form-label">联系电话</label><input type="text" class="form-control" name="phone" value="${item.phone || ''}"></div>
+                    </form>`,
+                'chicken-house': `
+                    <form id="crudForm">
+                        <div class="mb-3"><label class="form-label">鸡舍编号</label><input type="text" class="form-control" name="houseNo" value="${item.houseNo || ''}"></div>
+                        <div class="mb-3"><label class="form-label">鸡舍名称 *</label><input type="text" class="form-control" name="name" value="${item.name || ''}" required></div>
+                        <div class="mb-3"><label class="form-label">设计容量</label><input type="number" class="form-control" name="capacity" value="${item.capacity || ''}"></div>
+                        <div class="mb-3"><label class="form-label">状态</label>
+                            <select class="form-select" name="status"><option value="ACTIVE" ${item.status === 'ACTIVE' ? 'selected' : ''}>使用中</option><option value="EMPTY" ${item.status === 'EMPTY' ? 'selected' : ''}>空闲</option></select>
+                        </div>
+                    </form>`
+            };
+            
+            document.getElementById('formModalTitle').textContent = id ? '编辑' : '新增';
+            document.getElementById('formModalBody').innerHTML = forms[entity] || '<p>表单未定义</p>';
+            document.getElementById('formModalSave').onclick = () => saveCrudForm(endpoint, id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        async function saveCrudForm(endpoint, id) {
+            const form = document.getElementById('crudForm');
+            const formData = new FormData(form);
+            const data = Object.fromEntries(formData.entries());
+            
+            try {
+                const res = await api(`${API_BASE}/${endpoint}${id ? `/${id}` : ''}`, {
+                    method: id ? 'PUT' : 'POST',
+                    body: JSON.stringify(data)
+                });
+                if (res?.code === 200) {
+                    bootstrap.Modal.getInstance(document.getElementById('formModal')).hide();
+                    navigateTo(endpoint);
+                } else {
+                    alert(res?.message || '保存失败');
+                }
+            } catch (err) {
+                alert('网络错误');
+            }
+        }
+
+        async function deleteEntity(endpoint, id) {
+            console.log('=== deleteEntity called ===');
+            console.log('endpoint:', endpoint, 'id:', id);
+            console.log('authToken:', authToken);
+            
+            if (!window.confirm('确定要删除吗？')) {
+                console.log('用户取消了删除');
+                return;
+            }
+            
+            if (!authToken) {
+                alert('请先登录');
+                logout();
+                return;
+            }
+            
+            try {
+                const url = `${API_BASE}/${endpoint}/${id}`;
+                console.log('Request URL:', url);
+                
+                const response = await fetch(url, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                console.log('Response status:', response.status);
+                const text = await response.text();
+                console.log('Response text:', text);
+                const res = text ? JSON.parse(text) : {};
+                
+                if (response.ok && res.code === 200) {
+                    alert('删除成功');
+                    navigateTo(currentPage);
+                } else if (response.status === 401 || response.status === 403) {
+                    alert('登录已过期，请重新登录');
+                    logout();
+                } else {
+                    alert('删除失败: ' + (res?.message || '服务器错误'));
+                }
+            } catch (err) {
+                console.error('删除错误:', err);
+                alert('网络错误: ' + err.message);
+            }
+        }
+
+        // ==================== 产品管理 ====================
+        async function loadProductsPage() {
+            const container = document.getElementById('page-products');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>产品列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showProductForm(null)"><i class="bi bi-plus-lg me-1"></i>新增产品</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>编号</th><th>名称</th><th>类型</th><th>单位</th><th>采购价</th><th>销售价</th><th>状态</th><th>操作</th></tr></thead>
+                                <tbody id="products-table"><tr><td colspan="8" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/products/active`);
+            const items = data?.data || [];
+            document.getElementById('products-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="8" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(p => `<tr>
+                    <td>${p.productNo || '-'}</td><td>${p.name || '-'}</td>
+                    <td><span class="badge bg-info">${getProductType(p.productType)}</span></td>
+                    <td>${p.unit || '-'}</td><td>${formatMoney(p.purchasePrice)}</td><td>${formatMoney(p.salePrice)}</td>
+                    <td><span class="badge ${p.isActive ? 'badge-active' : 'badge-inactive'}">${p.isActive ? '上架' : '下架'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showProductForm(${p.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('products', ${p.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        function getProductType(t) {
+            const types = { 'CHICKEN': '肉鸡', 'EGG': '鸡蛋', 'FEED': '饲料' };
+            return types[t] || t || '-';
+        }
+
+        async function showProductForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/products/${id}`);
+                item = res?.data || {};
+            }
+            document.getElementById('formModalTitle').textContent = id ? '编辑产品' : '新增产品';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">产品编号</label><input type="text" class="form-control" name="productNo" value="${item.productNo || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">产品名称 *</label><input type="text" class="form-control" name="name" value="${item.name || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">产品类型</label>
+                            <select class="form-select" name="productType"><option value="CHICKEN" ${item.productType === 'CHICKEN' ? 'selected' : ''}>肉鸡</option><option value="EGG" ${item.productType === 'EGG' ? 'selected' : ''}>鸡蛋</option><option value="FEED" ${item.productType === 'FEED' ? 'selected' : ''}>饲料</option></select>
+                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">单位</label><input type="text" class="form-control" name="unit" value="${item.unit || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label class="form-label">采购价</label><input type="number" step="0.01" class="form-control" name="purchasePrice" value="${item.purchasePrice || ''}"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">销售价</label><input type="number" step="0.01" class="form-control" name="salePrice" value="${item.salePrice || ''}"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">批发价</label><input type="number" step="0.01" class="form-control" name="wholesalePrice" value="${item.wholesalePrice || ''}"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">产品描述</label><textarea class="form-control" name="description" rows="2">${item.description || ''}</textarea></div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('products', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 肉鸡批次 ====================
+        async function loadChickenBatchesPage() {
+            const container = document.getElementById('page-chicken-batches');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>肉鸡批次列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showBatchForm(null)"><i class="bi bi-plus-lg me-1"></i>新增批次</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>批次编号</th><th>鸡群名称</th><th>品种</th><th>进雏日期</th><th>进雏数量</th><th>当前存栏</th><th>日龄</th><th>状态</th><th>操作</th></tr></thead>
+                                <tbody id="batches-table"><tr><td colspan="9" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/chicken-batches/active`);
+            const items = data?.data || [];
+            document.getElementById('batches-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="9" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(b => `<tr>
+                    <td>${b.batchNo || '-'}</td><td>${b.groupName || '-'}</td><td>${b.breed || '-'}</td>
+                    <td>${formatDate(b.entryDate)}</td><td>${b.entryQuantity || 0}</td><td>${b.currentQuantity || 0}</td>
+                    <td>${b.currentAge || 0}天</td>
+                    <td><span class="badge ${b.status === 'ACTIVE' ? 'badge-active' : 'badge-completed'}">${b.status === 'ACTIVE' ? '养殖中' : '已出栏'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-info me-1" onclick="showBatchProfit(${b.id})"><i class="bi bi-graph-up"></i></button>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showBatchForm(${b.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('chicken-batches', ${b.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showBatchForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/chicken-batches/${id}`);
+                item = res?.data || {};
+            }
+            
+            // 获取鸡舍列表
+            const houses = await api(`${API_BASE}/chicken-houses`);
+            const houseOptions = (houses?.data || []).map(h => `<option value="${h.id}" ${item.houseId === h.id ? 'selected' : ''}>${h.name || h.houseNo}</option>`).join('');
+            
+            document.getElementById('formModalTitle').textContent = id ? '编辑批次' : '新增批次';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">批次编号</label><input type="text" class="form-control" name="batchNo" value="${item.batchNo || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">鸡群名称 *</label><input type="text" class="form-control" name="groupName" value="${item.groupName || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">鸡舍 *</label><select class="form-select" name="houseId" required><option value="">请选择</option>${houseOptions}</select></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">品种</label><input type="text" class="form-control" name="breed" value="${item.breed || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label class="form-label">进雏日期 *</label><input type="date" class="form-control" name="entryDate" value="${item.entryDate || ''}" required></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">进雏数量 *</label><input type="number" class="form-control" name="entryQuantity" value="${item.entryQuantity || ''}" required></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">进雏单价</label><input type="number" step="0.01" class="form-control" name="entryPrice" value="${item.entryPrice || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">当前存栏</label><input type="number" class="form-control" name="currentQuantity" value="${item.currentQuantity || item.entryQuantity || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">状态</label>
+                            <select class="form-select" name="status"><option value="ACTIVE" ${item.status === 'ACTIVE' ? 'selected' : ''}>养殖中</option><option value="COMPLETED" ${item.status === 'COMPLETED' ? 'selected' : ''}>已出栏</option></select>
+                        </div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">备注</label><textarea class="form-control" name="remarks" rows="2">${item.remarks || ''}</textarea></div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('chicken-batches', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        async function showBatchProfit(batchId) {
+            const res = await api(`${API_BASE}/reports/batch-profit/${batchId}`);
+            const data = res?.data;
+            if (!data) { alert('无法获取数据'); return; }
+            
+            document.getElementById('formModalTitle').textContent = '批次利润分析';
+            document.getElementById('formModalBody').innerHTML = `
+                <div class="row mb-3">
+                    <div class="col-md-6"><strong>批次编号：</strong>${data.batchNo || '-'}</div>
+                    <div class="col-md-6"><strong>鸡群名称：</strong>${data.groupName || '-'}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-4"><strong>进雏数量：</strong>${data.entryQuantity || 0}</div>
+                    <div class="col-md-4"><strong>销售数量：</strong>${data.saleQuantity || 0}</div>
+                    <div class="col-md-4"><strong>死亡数量：</strong>${data.deathCount || 0}</div>
+                </div>
+                <hr>
+                <div class="row mb-3">
+                    <div class="col-md-4"><strong>进雏成本：</strong>${formatMoney(data.entryCost)}</div>
+                    <div class="col-md-4"><strong>饲料成本：</strong>${formatMoney(data.feedCost)}</div>
+                    <div class="col-md-4"><strong>总成本：</strong>${formatMoney(data.totalCost)}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-md-6"><strong>总收入：</strong>${formatMoney(data.totalIncome)}</div>
+                    <div class="col-md-6"><strong>毛利润：</strong><span class="${Number(data.grossProfit) >= 0 ? 'text-success' : 'text-danger'}">${formatMoney(data.grossProfit)}</span></div>
+                </div>
+                <div class="row">
+                    <div class="col-md-4"><strong>单只成本：</strong>${formatMoney(data.unitCost)}</div>
+                    <div class="col-md-4"><strong>单只利润：</strong>${formatMoney(data.unitProfit)}</div>
+                    <div class="col-md-4"><strong>利润率：</strong>${data.profitRate || 0}%</div>
+                </div>
+            `;
+            document.getElementById('formModalFooter').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+            document.getElementById('formModal').addEventListener('hidden.bs.modal', () => {
+                document.getElementById('formModalFooter').classList.remove('d-none');
+            }, { once: true });
+        }
+
+        // ==================== 死亡记录 ====================
+        async function loadDeathRecordsPage() {
+            const container = document.getElementById('page-death-records');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>死亡记录列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showDeathForm(null)"><i class="bi bi-plus-lg me-1"></i>新增记录</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>批次ID</th><th>死亡日期</th><th>死亡数量</th><th>死亡原因</th><th>操作</th></tr></thead>
+                                <tbody id="death-table"><tr><td colspan="5" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/death-records/active`);
+            const items = data?.data || [];
+            document.getElementById('death-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="5" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(d => `<tr>
+                    <td>${d.batchId || '-'}</td><td>${formatDate(d.deathDate)}</td><td>${d.deathCount || 0}</td>
+                    <td>${d.deathReason || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showDeathForm(${d.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('death-records', ${d.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showDeathForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/death-records/${id}`);
+                item = res?.data || {};
+            }
+            const batches = await api(`${API_BASE}/chicken-batches/active`);
+            const batchOptions = (batches?.data || []).map(b => `<option value="${b.id}" ${item.batchId === b.id ? 'selected' : ''}>${b.groupName || b.batchNo}</option>`).join('');
+            
+            document.getElementById('formModalTitle').textContent = id ? '编辑记录' : '新增记录';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="mb-3"><label class="form-label">批次 *</label><select class="form-select" name="batchId" required><option value="">请选择</option>${batchOptions}</select></div>
+                    <div class="mb-3"><label class="form-label">死亡日期 *</label><input type="date" class="form-control" name="deathDate" value="${item.deathDate || ''}" required></div>
+                    <div class="mb-3"><label class="form-label">死亡数量 *</label><input type="number" class="form-control" name="deathCount" value="${item.deathCount || ''}" required></div>
+                    <div class="mb-3"><label class="form-label">死亡原因</label><input type="text" class="form-control" name="deathReason" value="${item.deathReason || ''}"></div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('death-records', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 投喂记录 ====================
+        async function loadFeedRecordsPage() {
+            const container = document.getElementById('page-feed-records');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>投喂记录列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showFeedForm(null)"><i class="bi bi-plus-lg me-1"></i>新增记录</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>批次ID</th><th>投喂日期</th><th>饲料</th><th>数量</th><th>成本</th><th>操作</th></tr></thead>
+                                <tbody id="feed-table"><tr><td colspan="6" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/feed-records/active`);
+            const items = data?.data || [];
+            document.getElementById('feed-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="6" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(f => `<tr>
+                    <td>${f.batchId || '-'}</td><td>${formatDate(f.recordDate)}</td><td>产品ID: ${f.productId || '-'}</td>
+                    <td>${f.quantity || 0} ${f.unit || '斤'}</td><td>${formatMoney(f.totalCost)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showFeedForm(${f.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('feed-records', ${f.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showFeedForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/feed-records/${id}`);
+                item = res?.data || {};
+            }
+            document.getElementById('formModalTitle').textContent = id ? '编辑记录' : '新增记录';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">批次ID *</label><input type="number" class="form-control" name="batchId" value="${item.batchId || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">投喂日期 *</label><input type="date" class="form-control" name="recordDate" value="${item.recordDate || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">饲料产品ID *</label><input type="number" class="form-control" name="productId" value="${item.productId || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">投喂数量 *</label><input type="number" step="0.01" class="form-control" name="quantity" value="${item.quantity || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">单价</label><input type="number" step="0.01" class="form-control" name="unitPrice" value="${item.unitPrice || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">供应商ID</label><input type="number" class="form-control" name="supplierId" value="${item.supplierId || ''}"></div>
+                    </div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('feed-records', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 产蛋记录 ====================
+        async function loadEggRecordsPage() {
+            const container = document.getElementById('page-egg-records');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>产蛋记录列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showEggRecordForm(null)"><i class="bi bi-plus-lg me-1"></i>新增记录</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>批次ID</th><th>产蛋日期</th><th>产蛋数量</th><th>总重量</th><th>操作</th></tr></thead>
+                                <tbody id="eggrecord-table"><tr><td colspan="5" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/egg-records/active`);
+            const items = data?.data || [];
+            document.getElementById('eggrecord-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="5" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(e => `<tr>
+                    <td>${e.batchId || '-'}</td><td>${formatDate(e.productionDate)}</td>
+                    <td>${e.totalCount || 0}</td><td>${e.totalWeight || 0} 斤</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showEggRecordForm(${e.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('egg-records', ${e.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showEggRecordForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/egg-records/${id}`);
+                item = res?.data || {};
+            }
+            document.getElementById('formModalTitle').textContent = id ? '编辑记录' : '新增记录';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">批次ID *</label><input type="number" class="form-control" name="batchId" value="${item.batchId || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">产蛋日期 *</label><input type="date" class="form-control" name="productionDate" value="${item.productionDate || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">产蛋数量 *</label><input type="number" class="form-control" name="totalCount" value="${item.totalCount || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">总重量(斤)</label><input type="number" step="0.01" class="form-control" name="totalWeight" value="${item.totalWeight || ''}"></div>
+                    </div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('egg-records', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 肉鸡销售 ====================
+        async function loadChickenSalesPage() {
+            const container = document.getElementById('page-chicken-sales');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>肉鸡销售记录</span>
+                        <div>
+                            <button class="btn btn-outline-success btn-sm me-2" onclick="exportData('chicken-sales')"><i class="bi bi-download me-1"></i>导出</button>
+                            <button class="btn btn-primary btn-sm" onclick="showChickenSaleForm(null)"><i class="bi bi-plus-lg me-1"></i>新增销售</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>销售单号</th><th>批次</th><th>销售日期</th><th>数量</th><th>重量</th><th>单价</th><th>金额</th><th>操作</th></tr></thead>
+                                <tbody id="chickensale-table"><tr><td colspan="8" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/chicken-sales/active`);
+            const items = data?.data || [];
+            document.getElementById('chickensale-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="8" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(s => `<tr>
+                    <td>${s.saleNo || '-'}</td><td>${s.batchId || '-'}</td><td>${formatDate(s.saleDate)}</td>
+                    <td>${s.quantity || 0}</td><td>${s.weight || 0} 斤</td><td>${formatMoney(s.unitPrice)}/斤</td>
+                    <td class="text-success fw-bold">${formatMoney(s.totalAmount)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showChickenSaleForm(${s.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('chicken-sales', ${s.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showChickenSaleForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/chicken-sales/${id}`);
+                item = res?.data || {};
+            }
+            const batches = await api(`${API_BASE}/chicken-batches/active`);
+            const batchOptions = (batches?.data || []).map(b => `<option value="${b.id}" ${item.batchId === b.id ? 'selected' : ''}>${b.groupName || b.batchNo}</option>`).join('');
+            const customers = await api(`${API_BASE}/customers/active`);
+            const customerOptions = (customers?.data || []).map(c => `<option value="${c.id}" ${item.customerId === c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+            
+            document.getElementById('formModalTitle').textContent = id ? '编辑销售' : '新增销售';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">销售单号</label><input type="text" class="form-control" name="saleNo" value="${item.saleNo || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">销售日期 *</label><input type="date" class="form-control" name="saleDate" value="${item.saleDate || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">批次 *</label><select class="form-select" name="batchId" required><option value="">请选择</option>${batchOptions}</select></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">客户</label><select class="form-select" name="customerId"><option value="">请选择</option>${customerOptions}</select></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label class="form-label">数量 *</label><input type="number" class="form-control" name="quantity" value="${item.quantity || ''}" required></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">重量(斤)</label><input type="number" step="0.01" class="form-control" name="weight" value="${item.weight || ''}"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">单价(元/斤)</label><input type="number" step="0.01" class="form-control" name="unitPrice" value="${item.unitPrice || ''}"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">备注</label><textarea class="form-control" name="remarks" rows="2">${item.remarks || ''}</textarea></div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('chicken-sales', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 鸡蛋销售 ====================
+        async function loadEggSalesPage() {
+            const container = document.getElementById('page-egg-sales');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>鸡蛋销售记录</span>
+                        <div>
+                            <button class="btn btn-outline-success btn-sm me-2" onclick="exportData('egg-sales')"><i class="bi bi-download me-1"></i>导出</button>
+                            <button class="btn btn-primary btn-sm" onclick="showEggSaleForm(null)"><i class="bi bi-plus-lg me-1"></i>新增销售</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>销售单号</th><th>销售日期</th><th>数量</th><th>重量</th><th>单价</th><th>金额</th><th>操作</th></tr></thead>
+                                <tbody id="eggsale-table"><tr><td colspan="7" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/egg-sales/active`);
+            const items = data?.data || [];
+            document.getElementById('eggsale-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="7" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(s => `<tr>
+                    <td>${s.saleNo || '-'}</td><td>${formatDate(s.saleDate)}</td>
+                    <td>${s.saleQuantity || 0}</td><td>${s.saleWeight || 0} 斤</td><td>${formatMoney(s.unitPrice)}/斤</td>
+                    <td class="text-success fw-bold">${formatMoney(s.totalAmount)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showEggSaleForm(${s.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('egg-sales', ${s.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showEggSaleForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/egg-sales/${id}`);
+                item = res?.data || {};
+            }
+            const customers = await api(`${API_BASE}/customers/active`);
+            const customerOptions = (customers?.data || []).map(c => `<option value="${c.id}" ${item.customerId === c.id ? 'selected' : ''}>${c.name}</option>`).join('');
+            
+            document.getElementById('formModalTitle').textContent = id ? '编辑销售' : '新增销售';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">销售单号</label><input type="text" class="form-control" name="saleNo" value="${item.saleNo || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">销售日期 *</label><input type="date" class="form-control" name="saleDate" value="${item.saleDate || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">客户</label><select class="form-select" name="customerId"><option value="">请选择</option>${customerOptions}</select></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">产品ID</label><input type="number" class="form-control" name="productId" value="${item.productId || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label class="form-label">数量 *</label><input type="number" class="form-control" name="saleQuantity" value="${item.saleQuantity || ''}" required></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">重量(斤)</label><input type="number" step="0.01" class="form-control" name="saleWeight" value="${item.saleWeight || ''}"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">单价(元/斤)</label><input type="number" step="0.01" class="form-control" name="unitPrice" value="${item.unitPrice || ''}"></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">备注</label><textarea class="form-control" name="remarks" rows="2">${item.remarks || ''}</textarea></div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('egg-sales', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 销售订单 ====================
+        async function loadSalesOrdersPage() {
+            const container = document.getElementById('page-sales-orders');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>销售订单列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showSalesOrderForm(null)"><i class="bi bi-plus-lg me-1"></i>新增订单</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>订单号</th><th>客户</th><th>下单时间</th><th>金额</th><th>支付状态</th><th>订单状态</th><th>操作</th></tr></thead>
+                                <tbody id="salesorder-table"><tr><td colspan="7" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/sales-orders/active`);
+            const items = data?.data || [];
+            document.getElementById('salesorder-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="7" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(o => `<tr>
+                    <td>${o.orderNo || '-'}</td><td>客户ID: ${o.customerId || '-'}</td><td>${formatDateTime(o.orderDate)}</td>
+                    <td>${formatMoney(o.actualAmount || o.totalAmount)}</td>
+                    <td><span class="badge ${o.paymentStatus === 'PAID' ? 'badge-active' : 'badge-pending'}">${o.paymentStatus === 'PAID' ? '已支付' : '未支付'}</span></td>
+                    <td><span class="badge ${o.orderStatus === 'COMPLETED' ? 'badge-completed' : 'badge-pending'}">${o.orderStatus === 'COMPLETED' ? '已完成' : o.orderStatus === 'CANCELLED' ? '已取消' : '待处理'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showSalesOrderForm(${o.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('sales-orders', ${o.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showSalesOrderForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/sales-orders/${id}`);
+                item = res?.data || {};
+            }
+            document.getElementById('formModalTitle').textContent = id ? '编辑订单' : '新增订单';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">订单号</label><input type="text" class="form-control" name="orderNo" value="${item.orderNo || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">客户ID *</label><input type="number" class="form-control" name="customerId" value="${item.customerId || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3"><label class="form-label">订单金额</label><input type="number" step="0.01" class="form-control" name="totalAmount" value="${item.totalAmount || ''}"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">优惠金额</label><input type="number" step="0.01" class="form-control" name="discountAmount" value="${item.discountAmount || ''}"></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">实付金额</label><input type="number" step="0.01" class="form-control" name="actualAmount" value="${item.actualAmount || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">支付状态</label>
+                            <select class="form-select" name="paymentStatus"><option value="UNPAID" ${item.paymentStatus === 'UNPAID' ? 'selected' : ''}>未支付</option><option value="PAID" ${item.paymentStatus === 'PAID' ? 'selected' : ''}>已支付</option></select>
+                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">订单状态</label>
+                            <select class="form-select" name="orderStatus"><option value="PENDING" ${item.orderStatus === 'PENDING' ? 'selected' : ''}>待处理</option><option value="COMPLETED" ${item.orderStatus === 'COMPLETED' ? 'selected' : ''}>已完成</option><option value="CANCELLED" ${item.orderStatus === 'CANCELLED' ? 'selected' : ''}>已取消</option></select>
+                        </div>
+                    </div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('sales-orders', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 采购订单 ====================
+        async function loadPurchaseOrdersPage() {
+            const container = document.getElementById('page-purchase-orders');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>采购订单列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showPurchaseOrderForm(null)"><i class="bi bi-plus-lg me-1"></i>新增订单</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>采购单号</th><th>供应商</th><th>采购日期</th><th>金额</th><th>付款状态</th><th>收货状态</th><th>操作</th></tr></thead>
+                                <tbody id="purchaseorder-table"><tr><td colspan="7" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/purchase-orders/active`);
+            const items = data?.data || [];
+            document.getElementById('purchaseorder-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="7" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(o => `<tr>
+                    <td>${o.orderNo || '-'}</td><td>供应商ID: ${o.supplierId || '-'}</td><td>${formatDate(o.orderDate)}</td>
+                    <td>${formatMoney(o.totalAmount)}</td>
+                    <td><span class="badge ${o.paymentStatus === 'PAID' ? 'badge-active' : 'badge-pending'}">${o.paymentStatus === 'PAID' ? '已付款' : '未付款'}</span></td>
+                    <td><span class="badge ${o.deliveryStatus === 'COMPLETED' ? 'badge-completed' : 'badge-pending'}">${o.deliveryStatus === 'COMPLETED' ? '已完成' : '待收货'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showPurchaseOrderForm(${o.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('purchase-orders', ${o.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showPurchaseOrderForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/purchase-orders/${id}`);
+                item = res?.data || {};
+            }
+            const suppliers = await api(`${API_BASE}/suppliers/active`);
+            const supplierOptions = (suppliers?.data || []).map(s => `<option value="${s.id}" ${item.supplierId === s.id ? 'selected' : ''}>${s.name}</option>`).join('');
+            
+            document.getElementById('formModalTitle').textContent = id ? '编辑订单' : '新增订单';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">采购单号</label><input type="text" class="form-control" name="orderNo" value="${item.orderNo || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">供应商 *</label><select class="form-select" name="supplierId" required><option value="">请选择</option>${supplierOptions}</select></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">采购日期 *</label><input type="date" class="form-control" name="orderDate" value="${item.orderDate || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">订单金额</label><input type="number" step="0.01" class="form-control" name="totalAmount" value="${item.totalAmount || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">付款状态</label>
+                            <select class="form-select" name="paymentStatus"><option value="UNPAID" ${item.paymentStatus === 'UNPAID' ? 'selected' : ''}>未付款</option><option value="PAID" ${item.paymentStatus === 'PAID' ? 'selected' : ''}>已付款</option></select>
+                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">收货状态</label>
+                            <select class="form-select" name="deliveryStatus"><option value="PENDING" ${item.deliveryStatus === 'PENDING' ? 'selected' : ''}>待收货</option><option value="COMPLETED" ${item.deliveryStatus === 'COMPLETED' ? 'selected' : ''}>已完成</option></select>
+                        </div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">备注</label><textarea class="form-control" name="remarks" rows="2">${item.remarks || ''}</textarea></div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('purchase-orders', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 库存管理 ====================
+        async function loadInventoryPage() {
+            const container = document.getElementById('page-inventory');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>库存列表</span>
+                        <div>
+                            <button class="btn btn-outline-warning btn-sm me-2" onclick="showInventoryAlerts()"><i class="bi bi-exclamation-triangle me-1"></i>库存预警</button>
+                            <button class="btn btn-primary btn-sm" onclick="showInventoryForm(null)"><i class="bi bi-plus-lg me-1"></i>新增库存</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>产品ID</th><th>批次号</th><th>数量</th><th>单位</th><th>存放位置</th><th>状态</th><th>操作</th></tr></thead>
+                                <tbody id="inventory-table"><tr><td colspan="7" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/inventory/active`);
+            const items = data?.data || [];
+            document.getElementById('inventory-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="7" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(i => `<tr>
+                    <td>${i.productId || '-'}</td><td>${i.batchNo || '-'}</td><td>${i.quantity || 0}</td>
+                    <td>${i.unit || '-'}</td><td>${i.location || '-'}</td>
+                    <td><span class="badge ${i.status ? 'badge-active' : 'badge-inactive'}">${i.status ? '正常' : '冻结'}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showInventoryForm(${i.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('inventory', ${i.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showInventoryForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/inventory/${id}`);
+                item = res?.data || {};
+            }
+            document.getElementById('formModalTitle').textContent = id ? '编辑库存' : '新增库存';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">产品ID *</label><input type="number" class="form-control" name="productId" value="${item.productId || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">批次号</label><input type="text" class="form-control" name="batchNo" value="${item.batchNo || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">数量 *</label><input type="number" step="0.01" class="form-control" name="quantity" value="${item.quantity || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">单位 *</label><input type="text" class="form-control" name="unit" value="${item.unit || ''}" required></div>
+                    </div>
+                    <div class="mb-3"><label class="form-label">存放位置</label><input type="text" class="form-control" name="location" value="${item.location || ''}"></div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('inventory', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        async function showInventoryAlerts() {
+            const res = await api(`${API_BASE}/reports/inventory-alerts?minThreshold=10`);
+            const alerts = res?.data || [];
+            document.getElementById('formModalTitle').textContent = '库存预警';
+            document.getElementById('formModalBody').innerHTML = alerts.length === 0 
+                ? '<div class="text-center py-4"><i class="bi bi-check-circle text-success" style="font-size:3rem;"></i><p class="mt-3">暂无库存预警</p></div>'
+                : `<ul class="list-group">${alerts.map(a => `<li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div><strong>${a.productName}</strong><br><small class="text-muted">${a.productNo} | ${a.productType}</small></div>
+                    <span class="badge ${a.alertLevel === 'CRITICAL' ? 'bg-danger' : 'bg-warning'}">${a.currentQuantity} ${a.unit}</span>
+                </li>`).join('')}</ul>`;
+            document.getElementById('formModalFooter').classList.add('d-none');
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+            document.getElementById('formModal').addEventListener('hidden.bs.modal', () => {
+                document.getElementById('formModalFooter').classList.remove('d-none');
+            }, { once: true });
+        }
+
+        // ==================== 财务记录 ====================
+        async function loadFinanceRecordsPage() {
+            const container = document.getElementById('page-finance-records');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>财务记录</span>
+                        <div>
+                            <button class="btn btn-outline-success btn-sm me-2" onclick="exportData('finance-records')"><i class="bi bi-download me-1"></i>导出</button>
+                            <button class="btn btn-primary btn-sm" onclick="showFinanceForm(null)"><i class="bi bi-plus-lg me-1"></i>新增记录</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>记录编号</th><th>日期</th><th>类型</th><th>金额</th><th>分类</th><th>支付方式</th><th>操作</th></tr></thead>
+                                <tbody id="finance-table"><tr><td colspan="7" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/finance-records/active`);
+            const items = data?.data || [];
+            document.getElementById('finance-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="7" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(f => `<tr>
+                    <td>${f.recordNo || '-'}</td><td>${formatDate(f.recordDate)}</td>
+                    <td><span class="badge ${f.moneyType === 'INCOME' ? 'bg-success' : 'bg-warning'}">${f.moneyType === 'INCOME' ? '收入' : '支出'}</span></td>
+                    <td class="${f.moneyType === 'INCOME' ? 'text-success' : 'text-danger'}">${formatMoney(f.amount)}</td>
+                    <td>${f.costType || f.incomeType || '-'}</td>
+                    <td>${f.paymentMethod || '-'}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showFinanceForm(${f.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('finance-records', ${f.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showFinanceForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/finance-records/${id}`);
+                item = res?.data || {};
+            }
+            document.getElementById('formModalTitle').textContent = id ? '编辑记录' : '新增记录';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">记录编号</label><input type="text" class="form-control" name="recordNo" value="${item.recordNo || ''}"></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">记录日期 *</label><input type="date" class="form-control" name="recordDate" value="${item.recordDate || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">资金类型 *</label>
+                            <select class="form-select" name="moneyType" required onchange="toggleFinanceFields()">
+                                <option value="INCOME" ${item.moneyType === 'INCOME' ? 'selected' : ''}>收入</option>
+                                <option value="COST" ${item.moneyType === 'COST' ? 'selected' : ''}>支出</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">金额 *</label><input type="number" step="0.01" class="form-control" name="amount" value="${item.amount || ''}" required></div>
+                    </div>
+                    <div id="incomeField" class="mb-3"><label class="form-label">收入类型</label>
+                        <select class="form-select" name="incomeType"><option value="">请选择</option><option value="CHICKEN_SALE" ${item.incomeType === 'CHICKEN_SALE' ? 'selected' : ''}>卖鸡收入</option><option value="EGG_SALE" ${item.incomeType === 'EGG_SALE' ? 'selected' : ''}>卖蛋收入</option><option value="OTHER" ${item.incomeType === 'OTHER' ? 'selected' : ''}>其他收入</option></select>
+                    </div>
+                    <div id="costField" class="mb-3"><label class="form-label">支出类型</label>
+                        <select class="form-select" name="costType"><option value="">请选择</option><option value="FEED" ${item.costType === 'FEED' ? 'selected' : ''}>饲料</option><option value="CHICKEN" ${item.costType === 'CHICKEN' ? 'selected' : ''}>鸡苗</option><option value="LABOR" ${item.costType === 'LABOR' ? 'selected' : ''}>人工</option><option value="OTHER" ${item.costType === 'OTHER' ? 'selected' : ''}>其他</option></select>
+                    </div>
+                    <div class="mb-3"><label class="form-label">支付方式</label><input type="text" class="form-control" name="paymentMethod" value="${item.paymentMethod || ''}"></div>
+                    <div class="mb-3"><label class="form-label">描述</label><textarea class="form-control" name="description" rows="2">${item.description || ''}</textarea></div>
+                </form>`;
+            toggleFinanceFields();
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('finance-records', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        function toggleFinanceFields() {
+            const type = document.querySelector('select[name="moneyType"]').value;
+            document.getElementById('incomeField').style.display = type === 'INCOME' ? 'block' : 'none';
+            document.getElementById('costField').style.display = type === 'COST' ? 'block' : 'none';
+        }
+
+        // ==================== 报表统计 ====================
+        async function loadReportsPage() {
+            const container = document.getElementById('page-reports');
+            const today = new Date();
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            
+            container.innerHTML = `
+                <div class="row mb-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card stat-card bg-gradient-success text-white">
+                            <div class="card-body">
+                                <div class="stat-value" id="report-income">¥0</div>
+                                <div class="stat-label">本月收入</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stat-card bg-gradient-warning text-white">
+                            <div class="card-body">
+                                <div class="stat-value" id="report-expense">¥0</div>
+                                <div class="stat-label">本月支出</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stat-card bg-gradient-purple text-white">
+                            <div class="card-body">
+                                <div class="stat-value" id="report-profit">¥0</div>
+                                <div class="stat-label">本月利润</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card stat-card bg-gradient-info text-white">
+                            <div class="card-body">
+                                <div class="stat-value" id="report-batches">0</div>
+                                <div class="stat-label">活跃批次</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">批次利润排行</div>
+                            <div class="card-body"><canvas id="profitRankChart" height="300"></canvas></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card h-100">
+                            <div class="card-header">收支分类统计</div>
+                            <div class="card-body"><canvas id="categoryChart" height="300"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // 加载报表数据
+            const report = await api(`${API_BASE}/reports/business?startDate=${monthStart}&endDate=${todayStr}`);
+            if (report?.data) {
+                document.getElementById('report-income').textContent = formatMoney(report.data.totalIncome);
+                document.getElementById('report-expense').textContent = formatMoney(report.data.totalExpense);
+                document.getElementById('report-profit').textContent = formatMoney(report.data.grossProfit);
+            }
+            
+            const overview = await api(`${API_BASE}/reports/dashboard`);
+            document.getElementById('report-batches').textContent = overview?.data?.activeBatchCount || 0;
+            
+            // 加载图表
+            loadReportCharts();
+        }
+
+        let profitRankChart, categoryChart;
+        async function loadReportCharts() {
+            // 批次利润排行
+            const profits = await api(`${API_BASE}/reports/batch-profits`);
+            const profitData = (profits?.data || []).sort((a, b) => (b.grossProfit || 0) - (a.grossProfit || 0)).slice(0, 5);
+            
+            const ctx1 = document.getElementById('profitRankChart').getContext('2d');
+            if (profitRankChart) profitRankChart.destroy();
+            profitRankChart = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: profitData.map(p => p.groupName || p.batchNo),
+                    datasets: [{ label: '毛利润', data: profitData.map(p => p.grossProfit || 0), backgroundColor: '#4caf50' }]
+                },
+                options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false }
+            });
+            
+            // 收支分类
+            const today = new Date();
+            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1).toISOString().split('T')[0];
+            const todayStr = today.toISOString().split('T')[0];
+            const report = await api(`${API_BASE}/reports/business?startDate=${monthStart}&endDate=${todayStr}`);
+            
+            const ctx2 = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['卖鸡收入', '卖蛋收入', '其他收入', '饲料支出', '鸡苗支出', '其他支出'],
+                    datasets: [{ data: [
+                        report?.data?.chickenSaleIncome || 0,
+                        report?.data?.eggSaleIncome || 0,
+                        report?.data?.otherIncome || 0,
+                        report?.data?.feedExpense || 0,
+                        report?.data?.chickenExpense || 0,
+                        report?.data?.otherExpense || 0
+                    ], backgroundColor: ['#4caf50','#81c784','#a5d6a7','#ff9800','#ffb74d','#ffe0b2'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false }
+            });
+        }
+
+        // ==================== 用户管理 ====================
+        async function loadUsersPage() {
+            const container = document.getElementById('page-users');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span>用户列表</span>
+                        <button class="btn btn-primary btn-sm" onclick="showUserForm(null)"><i class="bi bi-plus-lg me-1"></i>新增用户</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>用户名</th><th>真实姓名</th><th>手机号</th><th>角色</th><th>状态</th><th>创建时间</th><th>操作</th></tr></thead>
+                                <tbody id="users-table"><tr><td colspan="7" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/sys-users/active`);
+            const items = data?.data || [];
+            document.getElementById('users-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="7" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(u => `<tr>
+                    <td>${u.username || '-'}</td><td>${u.realName || '-'}</td><td>${u.phone || '-'}</td>
+                    <td><span class="badge ${u.role === 'ADMIN' ? 'bg-danger' : 'bg-info'}">${u.role === 'ADMIN' ? '管理员' : '员工'}</span></td>
+                    <td><span class="badge ${u.isActive ? 'badge-active' : 'badge-inactive'}">${u.isActive ? '启用' : '禁用'}</span></td>
+                    <td>${formatDateTime(u.createdTime)}</td>
+                    <td>
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="showUserForm(${u.id})"><i class="bi bi-pencil"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteEntity('sys-users', ${u.id})"><i class="bi bi-trash"></i></button>
+                    </td>
+                </tr>`).join('');
+        }
+
+        async function showUserForm(id) {
+            let item = {};
+            if (id) {
+                const res = await api(`${API_BASE}/sys-users/${id}`);
+                item = res?.data || {};
+            }
+            document.getElementById('formModalTitle').textContent = id ? '编辑用户' : '新增用户';
+            document.getElementById('formModalBody').innerHTML = `
+                <form id="crudForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">用户名 *</label><input type="text" class="form-control" name="username" value="${item.username || ''}" required></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">真实姓名 *</label><input type="text" class="form-control" name="realName" value="${item.realName || ''}" required></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">密码 ${id ? '(留空不修改)' : '*'}</label><input type="password" class="form-control" name="password" ${id ? '' : 'required'}></div>
+                        <div class="col-md-6 mb-3"><label class="form-label">手机号</label><input type="text" class="form-control" name="phone" value="${item.phone || ''}"></div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3"><label class="form-label">角色</label>
+                            <select class="form-select" name="role"><option value="STAFF" ${item.role === 'STAFF' ? 'selected' : ''}>员工</option><option value="ADMIN" ${item.role === 'ADMIN' ? 'selected' : ''}>管理员</option></select>
+                        </div>
+                        <div class="col-md-6 mb-3"><label class="form-label">状态</label>
+                            <select class="form-select" name="isActive"><option value="true" ${item.isActive ? 'selected' : ''}>启用</option><option value="false" ${!item.isActive ? 'selected' : ''}>禁用</option></select>
+                        </div>
+                    </div>
+                </form>`;
+            document.getElementById('formModalSave').onclick = () => saveCrudForm('sys-users', id);
+            new bootstrap.Modal(document.getElementById('formModal')).show();
+        }
+
+        // ==================== 操作日志 ====================
+        async function loadOperationLogsPage() {
+            const container = document.getElementById('page-operation-logs');
+            container.innerHTML = `
+                <div class="card">
+                    <div class="card-header">操作日志</div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead><tr><th>用户</th><th>操作</th><th>IP</th><th>状态</th><th>时间</th></tr></thead>
+                                <tbody id="logs-table"><tr><td colspan="5" class="text-center py-4">加载中...</td></tr></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            const data = await api(`${API_BASE}/operation-logs?page=0&size=50`);
+            const items = data?.data?.content || data?.data || [];
+            document.getElementById('logs-table').innerHTML = items.length === 0 
+                ? '<tr><td colspan="5" class="text-center py-4 text-muted">暂无数据</td></tr>'
+                : items.map(l => `<tr>
+                    <td>${l.username || '-'}</td><td>${l.operation || '-'}</td><td>${l.ip || '-'}</td>
+                    <td><span class="badge ${l.status ? 'badge-active' : 'bg-danger'}">${l.status ? '成功' : '失败'}</span></td>
+                    <td>${formatDateTime(l.createdTime)}</td>
+                </tr>`).join('');
+        }
+
+        // ==================== 导出功能 ====================
+        function exportData(type) {
+            const urls = {
+                'chicken-sales': `${API_BASE}/excel/export/chicken-sales`,
+                'egg-sales': `${API_BASE}/excel/export/egg-sales`,
+                'finance-records': `${API_BASE}/excel/export/finance-records?startDate=2024-01-01&endDate=2025-12-31`,
+                'customers': `${API_BASE}/excel/export/customers`
+            };
+            if (urls[type]) {
+                window.open(urls[type], '_blank');
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  app:
+    image: gradle:8.14-jdk21
+    container_name: java_demo
+    working_dir: /app
+    volumes:
+      - .:/app
+      - gradle-cache:/home/gradle/.gradle
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    command: >
+      sh -c "gradle bootJar --no-daemon -x test && java -jar build/libs/demo-1.0.0.jar"
+
+volumes:
+  gradle-cache:
