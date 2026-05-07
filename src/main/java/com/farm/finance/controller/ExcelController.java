@@ -2,6 +2,8 @@ package com.farm.finance.controller;
 
 import com.farm.finance.common.Result;
 import com.farm.finance.entity.*;
+import com.farm.finance.repository.ChickenBatchRepository;
+import com.farm.finance.repository.CustomerRepository;
 import com.farm.finance.service.*;
 import com.farm.finance.util.ExcelUtils;
 import jakarta.servlet.http.HttpServletResponse;
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/excel")
@@ -33,6 +36,10 @@ public class ExcelController {
     private final ChickenSaleService chickenSaleService;
     private final EggSaleService eggSaleService;
     private final FinanceRecordService financeRecordService;
+
+    // Repository for lookups
+    private final ChickenBatchRepository chickenBatchRepository;
+    private final CustomerRepository customerRepository;
 
     // ==================== 导出功能 ====================
 
@@ -409,6 +416,50 @@ public class ExcelController {
         return Result.success("导入完成：成功 " + successCount + " 条，失败 " + failCount + " 条");
     }
 
+    /**
+     * 导入肉鸡销售数据
+     */
+    @PostMapping("/import/chicken-sales")
+    public Result<String> importChickenSales(@RequestParam("file") MultipartFile file) throws IOException {
+        List<Object> result = parseChickenSaleExcelWithErrors(file.getInputStream());
+        int successCount = 0;
+        int failCount = 0;
+        List<String> errors = new ArrayList<>();
+        String headerInfo = "";
+
+        for (Object obj : result) {
+            if (obj instanceof ChickenSale) {
+                ChickenSale sale = (ChickenSale) obj;
+                try {
+                    sale.setIsActive(true);
+                    sale.setCreatedTime(LocalDateTime.now());
+                    chickenSaleService.save(sale);
+                    successCount++;
+                } catch (Exception e) {
+                    failCount++;
+                    errors.add("保存失败：" + e.getMessage());
+                }
+            } else if (obj instanceof String) {
+                String msg = (String) obj;
+                if (msg.startsWith("识别到的表头：")) {
+                    headerInfo = msg;
+                } else {
+                    failCount++;
+                    errors.add(msg);
+                }
+            }
+        }
+
+        String message = headerInfo + "\n导入完成：成功 " + successCount + " 条，失败 " + failCount + " 条";
+        if (!errors.isEmpty() && errors.size() <= 5) {
+            message += "。错误：" + String.join("；", errors);
+        } else if (!errors.isEmpty()) {
+            message += "。前5个错误：" + String.join("；", errors.subList(0, 5));
+        }
+
+        return Result.success(message);
+    }
+
     // ==================== 解析方法 ====================
 
     private List<Customer> parseCustomerExcel(InputStream inputStream) throws IOException {
@@ -488,6 +539,201 @@ public class ExcelController {
     }
 
     // ==================== 工具方法 ====================
+
+    private List<Object> parseChickenSaleExcelWithErrors(InputStream inputStream) throws IOException {
+        List<Object> result = new ArrayList<>();
+        List<List<String>> data = ExcelUtils.readExcel(inputStream);
+
+        if (data.size() < 2) {
+            result.add("Excel文件为空或只有表头");
+            return result;
+        }
+
+        // 解析表头，建立列名到索引的映射
+        List<String> headers = data.get(0);
+        java.util.Map<String, Integer> colIndex = new java.util.HashMap<>();
+        StringBuilder headerInfo = new StringBuilder("识别到的表头：");
+
+        for (int i = 0; i < headers.size(); i++) {
+            String header = headers.get(i).trim();
+            headerInfo.append("[").append(i).append(":").append(header).append("] ");
+            String headerLower = header.toLowerCase();
+
+            switch (headerLower) {
+                case "鸡舍":
+                case "舍":
+                case "house":
+                case "批次":
+                case "批次编号":
+                case "批次号":
+                case "batch":
+                case "batchno":
+                    colIndex.put("house", i);
+                    break;
+                case "销售日期":
+                case "日期":
+                case "date":
+                    colIndex.put("date", i);
+                    break;
+                case "数量":
+                case "quantity":
+                    colIndex.put("quantity", i);
+                    break;
+                case "重量":
+                case "weight":
+                    colIndex.put("weight", i);
+                    break;
+                case "单价":
+                case "price":
+                    colIndex.put("price", i);
+                    break;
+                case "总金额":
+                case "金额":
+                case "总额":
+                case "amount":
+                    colIndex.put("amount", i);
+                    break;
+                case "客户":
+                case "customer":
+                    colIndex.put("customer", i);
+                    break;
+                case "单号":
+                case "编号":
+                case "销售单号":
+                case "saleno":
+                    colIndex.put("saleno", i);
+                    break;
+            }
+        }
+
+        result.add(headerInfo.toString() + " | 列映射：批次=" + colIndex.get("house") +
+            ", 日期=" + colIndex.get("date") + ", 数量=" + colIndex.get("quantity") +
+            ", 重量=" + colIndex.get("weight") + ", 单价=" + colIndex.get("price") +
+            ", 金额=" + colIndex.get("amount"));
+
+        if (data.size() > 1) {
+            List<String> firstRow = data.get(1);
+            StringBuilder dataInfo = new StringBuilder("第2行数据：");
+            for (int j = 0; j < firstRow.size() && j < 8; j++) {
+                dataInfo.append("[").append(j).append(":").append(firstRow.get(j)).append("] ");
+            }
+            result.add(dataInfo.toString());
+        }
+
+        for (int i = 1; i < data.size(); i++) {
+            List<String> row = data.get(i);
+            if (row.isEmpty()) continue;
+
+            int rowNum = i + 1;
+
+            Integer houseIdx = colIndex.get("house");
+            if (houseIdx == null || houseIdx >= row.size() || row.get(houseIdx).isEmpty()) {
+                result.add("第" + rowNum + "行：缺少批次信息");
+                continue;
+            }
+
+            String batchRef = row.get(houseIdx).trim();
+            Optional<ChickenBatch> batch = chickenBatchRepository.findByBatchNo(batchRef);
+            if (batch.isEmpty()) {
+                batch = chickenBatchRepository.findByBatchName(batchRef);
+            }
+            if (batch.isEmpty()) {
+                result.add("第" + rowNum + "行：批次\"" + batchRef + "\"不存在，请先在系统中添加该批次");
+                continue;
+            }
+
+            Integer dateIdx = colIndex.get("date");
+            if (dateIdx == null || dateIdx >= row.size() || row.get(dateIdx).isEmpty()) {
+                result.add("第" + rowNum + "行：缺少销售日期");
+                continue;
+            }
+
+            LocalDate saleDate = parseDate(row.get(dateIdx));
+            if (saleDate == null) {
+                result.add("第" + rowNum + "行：日期格式错误\"" + row.get(dateIdx) + "\"");
+                continue;
+            }
+
+            ChickenSale sale = new ChickenSale();
+            sale.setBatchId(batch.get().getId());
+            sale.setSaleDate(saleDate);
+
+            Integer saleNoIdx = colIndex.get("saleno");
+            if (saleNoIdx != null && saleNoIdx < row.size() && !row.get(saleNoIdx).isEmpty()) {
+                String inputSaleNo = row.get(saleNoIdx).trim();
+                if (chickenSaleService.existsBySaleNo(inputSaleNo)) {
+                    result.add("第" + rowNum + "行：销售单号\"" + inputSaleNo + "\"已存在，请修改或留空让系统自动生成");
+                    continue;
+                }
+                sale.setSaleNo(inputSaleNo);
+            } else {
+                String timestamp = String.valueOf(System.currentTimeMillis()).substring(9);
+                sale.setSaleNo("CS" + saleDate.toString().replace("-", "") + timestamp);
+            }
+
+            Integer qtyIdx = colIndex.get("quantity");
+            int quantity = 0;
+            if (qtyIdx != null && qtyIdx < row.size() && !row.get(qtyIdx).isEmpty()) {
+                try { quantity = Integer.parseInt(row.get(qtyIdx).trim()); } catch (Exception ignored) {}
+            }
+            sale.setQuantity(quantity);
+
+            Integer weightIdx = colIndex.get("weight");
+            BigDecimal weight = BigDecimal.ZERO;
+            if (weightIdx != null && weightIdx < row.size() && !row.get(weightIdx).isEmpty()) {
+                try { weight = new BigDecimal(row.get(weightIdx).trim()); } catch (Exception ignored) {}
+            }
+            sale.setWeight(weight);
+
+            Integer priceIdx = colIndex.get("price");
+            BigDecimal unitPrice = BigDecimal.ZERO;
+            if (priceIdx != null && priceIdx < row.size() && !row.get(priceIdx).isEmpty()) {
+                try { unitPrice = new BigDecimal(row.get(priceIdx).trim()); } catch (Exception ignored) {}
+            }
+            sale.setUnitPrice(unitPrice);
+
+            Integer amountIdx = colIndex.get("amount");
+            BigDecimal totalAmount = BigDecimal.ZERO;
+            if (amountIdx != null && amountIdx < row.size() && !row.get(amountIdx).isEmpty()) {
+                try { totalAmount = new BigDecimal(row.get(amountIdx).trim()); } catch (Exception ignored) {}
+            }
+            sale.setTotalAmount(totalAmount);
+
+            Integer customerIdx = colIndex.get("customer");
+            if (customerIdx != null && customerIdx < row.size() && !row.get(customerIdx).isEmpty()) {
+                String customerRef = row.get(customerIdx).trim();
+                Optional<Customer> customer = customerRepository.findByName(customerRef);
+                if (customer.isEmpty()) {
+                    customer = customerRepository.findByCustomerNo(customerRef);
+                }
+                customer.ifPresent(c -> sale.setCustomerId(c.getId()));
+            }
+
+            result.add(sale);
+        }
+
+        return result;
+    }
+
+    private LocalDate parseDate(String dateStr) {
+        if (dateStr == null || dateStr.trim().isEmpty()) return null;
+        try {
+            DateTimeFormatter[] formatters = {
+                DateTimeFormatter.ofPattern("yyyy-MM-dd"),
+                DateTimeFormatter.ofPattern("yyyy/MM/dd"),
+                DateTimeFormatter.ofPattern("yyyy年MM月dd日"),
+                DateTimeFormatter.ofPattern("MM/dd/yyyy")
+            };
+            for (DateTimeFormatter formatter : formatters) {
+                try {
+                    return LocalDate.parse(dateStr.trim(), formatter);
+                } catch (Exception ignored) {}
+            }
+            return LocalDate.parse(dateStr.trim());
+        } catch (Exception e) {
+            return null;
+        }
+    }
 
     private String formatDateTime(LocalDateTime dateTime) {
         if (dateTime == null) return "";
