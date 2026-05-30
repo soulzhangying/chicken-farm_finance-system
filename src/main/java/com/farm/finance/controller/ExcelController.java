@@ -542,9 +542,17 @@ public class ExcelController {
             }
 
             String batchRef = normalizeNumericString(row.get(batchIdx).trim());
+            String originalRef = row.get(batchIdx).trim(); // 保留原始值用于模糊匹配
             Optional<ChickenBatch> batch = chickenBatchRepository.findByBatchNo(batchRef);
             if (batch.isEmpty()) {
                 batch = chickenBatchRepository.findByBatchName(batchRef);
+            }
+            if (batch.isEmpty() && !batchRef.equals(originalRef)) {
+                // 用原始值再试一次（normalizeNumericString可能改变了值）
+                batch = chickenBatchRepository.findByBatchNo(originalRef);
+                if (batch.isEmpty()) {
+                    batch = chickenBatchRepository.findByBatchName(originalRef);
+                }
             }
             if (batch.isEmpty()) {
                 // 尝试按ID查找（处理导出文件中直接使用ID的情况）
@@ -552,6 +560,16 @@ public class ExcelController {
                     Long batchId = Long.parseLong(batchRef);
                     batch = chickenBatchRepository.findById(batchId);
                 } catch (NumberFormatException ignored) {}
+            }
+            if (batch.isEmpty()) {
+                // 最后尝试关键字模糊匹配
+                List<ChickenBatch> matches = chickenBatchRepository.searchByKeyword(batchRef);
+                if (matches.size() == 1) {
+                    batch = Optional.of(matches.get(0));
+                } else if (matches.size() > 1) {
+                    result.add("第" + rowNum + "行：批次\"" + batchRef + "\"匹配到多个结果，请使用更精确的批次编号");
+                    continue;
+                }
             }
             if (batch.isEmpty()) {
                 result.add("第" + rowNum + "行：批次\"" + batchRef + "\"不存在，请先在系统中添加该批次");
