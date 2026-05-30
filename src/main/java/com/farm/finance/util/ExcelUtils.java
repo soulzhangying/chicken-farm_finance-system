@@ -107,7 +107,13 @@ public class ExcelUtils {
                 if (DateUtil.isCellDateFormatted(cell)) {
                     yield cell.getLocalDateTimeCellValue().toLocalDate().toString();
                 } else {
-                    yield String.valueOf(cell.getNumericCellValue());
+                    double numVal = cell.getNumericCellValue();
+                    // 如果是整数，去掉小数点和科学计数法
+                    if (numVal == Math.floor(numVal) && !Double.isInfinite(numVal)) {
+                        yield String.valueOf((long) numVal);
+                    } else {
+                        yield String.valueOf(numVal);
+                    }
                 }
             }
             case BOOLEAN -> String.valueOf(cell.getBooleanCellValue());
