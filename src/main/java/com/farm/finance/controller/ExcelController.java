@@ -467,14 +467,21 @@ public class ExcelController {
             headerInfo.append("[").append(i).append(":").append(header).append("(len=").append(header.length()).append(")]");
             String headerLower = header.toLowerCase();
             
-            // 精确匹配
+            // 精确匹配 + 模糊匹配
             switch (headerLower) {
                 case "批次":
                 case "批次id":
                 case "批次编号":
                 case "batch":
                 case "batchid":
+                case "批次号":
                     colIndex.put("batch", i);
+                    break;
+                default:
+                    // 模糊匹配：包含关键字即识别
+                    if (headerLower.contains("批次") || headerLower.contains("batch")) {
+                        colIndex.put("batch", i);
+                    }
                     break;
                 case "销售日期":
                 case "日期":
