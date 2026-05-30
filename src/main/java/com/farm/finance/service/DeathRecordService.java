@@ -36,8 +36,8 @@ public class DeathRecordService {
     
     // ========== 按字段查询 ==========
     
-    public List<DeathRecord> findByBatchId(Long batchId) {
-        return deathRecordRepository.findByBatchId(batchId);
+    public List<DeathRecord> findByHouseId(Long houseId) {
+        return deathRecordRepository.findByHouseId(houseId);
     }
     
     public List<DeathRecord> findByOperatorId(Long operatorId) {
@@ -64,8 +64,8 @@ public class DeathRecordService {
     
     // ========== 分页查询 ==========
     
-    public Page<DeathRecord> findByBatchId(Long batchId, Pageable pageable) {
-        return deathRecordRepository.findByBatchId(batchId, pageable);
+    public Page<DeathRecord> findByHouseId(Long houseId, Pageable pageable) {
+        return deathRecordRepository.findByHouseId(houseId, pageable);
     }
     
     public Page<DeathRecord> findByOperatorId(Long operatorId, Pageable pageable) {
@@ -74,9 +74,9 @@ public class DeathRecordService {
     
     // ========== 组合搜索 ==========
     
-    public Page<DeathRecord> search(Long batchId, Long operatorId, String deathReason, 
+    public Page<DeathRecord> search(Long houseId, Long operatorId, String deathReason, 
                                       Boolean isActive, Pageable pageable) {
-        return deathRecordRepository.search(batchId, operatorId, deathReason, isActive, pageable);
+        return deathRecordRepository.search(houseId, operatorId, deathReason, isActive, pageable);
     }
     
     // ========== 时间范围查询 ==========
@@ -91,8 +91,8 @@ public class DeathRecordService {
         return deathRecordRepository.countByIsActiveTrue();
     }
     
-    public Integer sumDeathCountByBatchId(Long batchId) {
-        return deathRecordRepository.sumDeathCountByBatchId(batchId);
+    public Integer sumDeathCountByHouseId(Long houseId) {
+        return deathRecordRepository.sumDeathCountByHouseId(houseId);
     }
     
     public Integer sumDeathCountByDateRange(LocalDate startDate, LocalDate endDate) {

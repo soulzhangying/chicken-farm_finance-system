@@ -162,4 +162,14 @@ public class FinanceRecordService {
     public boolean existsByRecordNo(String recordNo) {
         return financeRecordRepository.existsByRecordNo(recordNo);
     }
+    
+    // ========== 关键词和日期范围搜索 ==========
+    
+    public List<FinanceRecord> searchByKeyword(String keyword) {
+        return financeRecordRepository.searchByKeyword(keyword);
+    }
+    
+    public List<FinanceRecord> searchByTypeAndDateRange(String moneyType, LocalDate startDate, LocalDate endDate) {
+        return financeRecordRepository.searchByTypeAndDateRange(moneyType, startDate, endDate);
+    }
 }

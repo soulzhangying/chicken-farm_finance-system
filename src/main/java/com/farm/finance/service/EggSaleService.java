@@ -137,4 +137,14 @@ public class EggSaleService {
     public boolean existsBySaleNo(String saleNo) {
         return eggSaleRepository.existsBySaleNo(saleNo);
     }
+    
+    // ========== 关键词和日期范围搜索 ==========
+    
+    public List<EggSale> searchByKeyword(String keyword) {
+        return eggSaleRepository.searchByKeyword(keyword);
+    }
+    
+    public List<EggSale> searchByDateRange(LocalDate startDate, LocalDate endDate) {
+        return eggSaleRepository.searchByDateRange(startDate, endDate);
+    }
 }

@@ -142,6 +142,11 @@ public class PurchaseOrderController {
         return Result.success(purchaseOrderService.search(supplierId, paymentStatus, deliveryStatus, isActive, pageable));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<PurchaseOrder>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(purchaseOrderService.searchByKeyword(keyword));
+    }
+    
     // ========== 时间范围查询 ==========
     
     @GetMapping("/created-time")

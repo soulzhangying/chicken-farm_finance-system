@@ -136,4 +136,24 @@ public class ChickenSaleService {
     public boolean existsBySaleNo(String saleNo) {
         return chickenSaleRepository.existsBySaleNo(saleNo);
     }
+    
+    // ========== 关键词和日期范围搜索 ==========
+    
+    public List<ChickenSale> searchByKeyword(String keyword) {
+        return chickenSaleRepository.searchByKeyword(keyword);
+    }
+    
+    public List<ChickenSale> searchByBatchIdAndDateRange(Long batchId, LocalDate startDate, LocalDate endDate) {
+        return chickenSaleRepository.searchByBatchIdAndDateRange(batchId, startDate, endDate);
+    }
+    
+    // ========== 按批次汇总销售额 ==========
+    
+    public List<Object[]> sumByBatchId() {
+        return chickenSaleRepository.sumByBatchId();
+    }
+    
+    public List<Object[]> sumByBatchIdAndDateRange(LocalDate startDate, LocalDate endDate) {
+        return chickenSaleRepository.sumByBatchIdAndDateRange(startDate, endDate);
+    }
 }

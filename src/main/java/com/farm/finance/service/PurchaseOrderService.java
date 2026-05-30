@@ -141,4 +141,10 @@ public class PurchaseOrderService {
     public boolean existsByOrderNo(String orderNo) {
         return purchaseOrderRepository.existsByOrderNo(orderNo);
     }
+    
+    // ========== 关键词搜索 ==========
+    
+    public List<PurchaseOrder> searchByKeyword(String keyword) {
+        return purchaseOrderRepository.searchByKeyword(keyword);
+    }
 }

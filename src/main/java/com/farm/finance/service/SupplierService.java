@@ -137,4 +137,10 @@ public class SupplierService {
     public boolean existsByPhone(String phone) {
         return supplierRepository.existsByPhone(phone);
     }
+    
+    // ========== 关键词搜索 ==========
+    
+    public List<Supplier> searchByKeyword(String keyword) {
+        return supplierRepository.searchByKeyword(keyword);
+    }
 }

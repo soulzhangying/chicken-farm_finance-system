@@ -42,8 +42,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     
     List<Product> findBySalePriceBetween(BigDecimal minPrice, BigDecimal maxPrice);
     
-    List<Product> findByPurchasePriceBetween(BigDecimal minPrice, BigDecimal maxPrice);
-    
     // ========== 分页查询 ==========
     
     Page<Product> findByProductType(String productType, Pageable pageable);
@@ -79,6 +77,14 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     @Query("SELECT p FROM Product p WHERE p.createdTime BETWEEN :startTime AND :endTime")
     List<Product> findByCreatedTimeBetween(@Param("startTime") LocalDateTime startTime,
                                            @Param("endTime") LocalDateTime endTime);
+    
+    // ========== 关键词搜索 ==========
+    
+    @Query("SELECT p FROM Product p WHERE p.isActive = true AND " +
+           "(LOWER(p.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.productNo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(p.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Product> searchByKeyword(@Param("keyword") String keyword);
     
     // ========== 统计查询 ==========
     

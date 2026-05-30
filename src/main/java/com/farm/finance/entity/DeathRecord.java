@@ -13,8 +13,8 @@ public class DeathRecord {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "batch_id", nullable = false)
-    private Long batchId;
+    @Column(name = "house_id", nullable = false)
+    private Long houseId;
 
     @Column(name = "death_date", nullable = false)
     private LocalDate deathDate;

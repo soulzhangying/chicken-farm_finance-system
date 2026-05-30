@@ -38,9 +38,9 @@ public class DeathRecordController {
     
     // ========== 按字段查询 ==========
     
-    @GetMapping("/batch/{batchId}")
-    public Result<List<DeathRecord>> findByBatchId(@PathVariable Long batchId) {
-        return Result.success(deathRecordService.findByBatchId(batchId));
+    @GetMapping("/house/{houseId}")
+    public Result<List<DeathRecord>> findByHouseId(@PathVariable Long houseId) {
+        return Result.success(deathRecordService.findByHouseId(houseId));
     }
     
     @GetMapping("/operator/{operatorId}")
@@ -85,13 +85,13 @@ public class DeathRecordController {
         return Result.success(deathRecordService.findAll(pageable));
     }
     
-    @GetMapping("/batch/{batchId}/page")
-    public Result<Page<DeathRecord>> findByBatchIdPage(
-            @PathVariable Long batchId,
+    @GetMapping("/house/{houseId}/page")
+    public Result<Page<DeathRecord>> findByHouseIdPage(
+            @PathVariable Long houseId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size) {
         Pageable pageable = PageRequest.of(page, size);
-        return Result.success(deathRecordService.findByBatchId(batchId, pageable));
+        return Result.success(deathRecordService.findByHouseId(houseId, pageable));
     }
     
     @GetMapping("/operator/{operatorId}/page")
@@ -107,7 +107,7 @@ public class DeathRecordController {
     
     @GetMapping("/search")
     public Result<Page<DeathRecord>> search(
-            @RequestParam(required = false) Long batchId,
+            @RequestParam(required = false) Long houseId,
             @RequestParam(required = false) Long operatorId,
             @RequestParam(required = false) String deathReason,
             @RequestParam(required = false) Boolean isActive,
@@ -117,7 +117,7 @@ public class DeathRecordController {
             @RequestParam(defaultValue = "desc") String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return Result.success(deathRecordService.search(batchId, operatorId, deathReason, isActive, pageable));
+        return Result.success(deathRecordService.search(houseId, operatorId, deathReason, isActive, pageable));
     }
     
     // ========== 时间范围查询 ==========
@@ -136,9 +136,9 @@ public class DeathRecordController {
         return Result.success(deathRecordService.countByIsActiveTrue());
     }
     
-    @GetMapping("/batch/{batchId}/sum")
-    public Result<Integer> sumDeathCountByBatchId(@PathVariable Long batchId) {
-        return Result.success(deathRecordService.sumDeathCountByBatchId(batchId));
+    @GetMapping("/house/{houseId}/sum")
+    public Result<Integer> sumDeathCountByHouseId(@PathVariable Long houseId) {
+        return Result.success(deathRecordService.sumDeathCountByHouseId(houseId));
     }
     
     @GetMapping("/sum")

@@ -135,6 +135,11 @@ public class SupplierController {
         return Result.success(supplierService.searchByName(keyword));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<Supplier>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(supplierService.searchByKeyword(keyword));
+    }
+    
     @GetMapping("/search/advanced")
     public Result<Page<Supplier>> searchAdvanced(
             @RequestParam(required = false) String name,

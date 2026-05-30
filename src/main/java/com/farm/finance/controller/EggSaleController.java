@@ -133,6 +133,18 @@ public class EggSaleController {
         return Result.success(eggSaleService.search(productId, customerId, paymentMethod, isActive, pageable));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<EggSale>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(eggSaleService.searchByKeyword(keyword));
+    }
+    
+    @GetMapping("/search/date-range")
+    public Result<List<EggSale>> searchByDateRange(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return Result.success(eggSaleService.searchByDateRange(startDate, endDate));
+    }
+    
     // ========== 时间范围查询 ==========
     
     @GetMapping("/created-time")

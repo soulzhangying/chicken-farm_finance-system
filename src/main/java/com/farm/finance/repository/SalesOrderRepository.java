@@ -81,4 +81,10 @@ public interface SalesOrderRepository extends JpaRepository<SalesOrder, Long> {
     
     @Query("SELECT SUM(s.actualAmount) FROM SalesOrder s WHERE s.paymentStatus = :paymentStatus AND s.isActive = true")
     BigDecimal sumAmountByPaymentStatus(@Param("paymentStatus") String paymentStatus);
+    
+    // ========== 关键词搜索 ==========
+    
+    @Query("SELECT s FROM SalesOrder s WHERE s.isActive = true AND " +
+           "(LOWER(s.orderNo) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<SalesOrder> searchByKeyword(@Param("keyword") String keyword);
 }

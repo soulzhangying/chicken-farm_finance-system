@@ -125,4 +125,10 @@ public class CustomerService {
     public boolean existsByPhone(String phone) {
         return customerRepository.existsByPhone(phone);
     }
+    
+    // ========== 关键词搜索 ==========
+    
+    public List<Customer> searchByKeyword(String keyword) {
+        return customerRepository.searchByKeyword(keyword);
+    }
 }

@@ -114,6 +114,11 @@ public class CustomerController {
         return Result.success(customerService.searchByName(keyword));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<Customer>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(customerService.searchByKeyword(keyword));
+    }
+    
     @GetMapping("/search/advanced")
     public Result<Page<Customer>> searchAdvanced(
             @RequestParam(required = false) String name,

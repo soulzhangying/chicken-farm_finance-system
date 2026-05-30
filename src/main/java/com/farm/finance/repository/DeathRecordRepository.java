@@ -17,7 +17,7 @@ public interface DeathRecordRepository extends JpaRepository<DeathRecord, Long> 
     
     // ========== 基本查询 ==========
     
-    List<DeathRecord> findByBatchId(Long batchId);
+    List<DeathRecord> findByHouseId(Long houseId);
     
     List<DeathRecord> findByOperatorId(Long operatorId);
     
@@ -33,18 +33,18 @@ public interface DeathRecordRepository extends JpaRepository<DeathRecord, Long> 
     
     // ========== 分页查询 ==========
     
-    Page<DeathRecord> findByBatchId(Long batchId, Pageable pageable);
+    Page<DeathRecord> findByHouseId(Long houseId, Pageable pageable);
     
     Page<DeathRecord> findByOperatorId(Long operatorId, Pageable pageable);
     
     // ========== 组合搜索 ==========
     
     @Query("SELECT d FROM DeathRecord d WHERE " +
-           "(:batchId IS NULL OR d.batchId = :batchId) AND " +
+           "(:houseId IS NULL OR d.houseId = :houseId) AND " +
            "(:operatorId IS NULL OR d.operatorId = :operatorId) AND " +
            "(:deathReason IS NULL OR d.deathReason = :deathReason) AND " +
            "(:isActive IS NULL OR d.isActive = :isActive)")
-    Page<DeathRecord> search(@Param("batchId") Long batchId,
+    Page<DeathRecord> search(@Param("houseId") Long houseId,
                               @Param("operatorId") Long operatorId,
                               @Param("deathReason") String deathReason,
                               @Param("isActive") Boolean isActive,
@@ -58,8 +58,8 @@ public interface DeathRecordRepository extends JpaRepository<DeathRecord, Long> 
     
     long countByIsActiveTrue();
     
-    @Query("SELECT SUM(d.deathCount) FROM DeathRecord d WHERE d.batchId = :batchId")
-    Integer sumDeathCountByBatchId(@Param("batchId") Long batchId);
+    @Query("SELECT SUM(d.deathCount) FROM DeathRecord d WHERE d.houseId = :houseId")
+    Integer sumDeathCountByHouseId(@Param("houseId") Long houseId);
     
     @Query("SELECT SUM(d.deathCount) FROM DeathRecord d WHERE d.deathDate BETWEEN :startDate AND :endDate")
     Integer sumDeathCountByDateRange(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);

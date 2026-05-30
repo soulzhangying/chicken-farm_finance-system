@@ -144,4 +144,10 @@ public class SalesOrderService {
     public boolean existsByOrderNo(String orderNo) {
         return salesOrderRepository.existsByOrderNo(orderNo);
     }
+    
+    // ========== 关键词搜索 ==========
+    
+    public List<SalesOrder> searchByKeyword(String keyword) {
+        return salesOrderRepository.searchByKeyword(keyword);
+    }
 }

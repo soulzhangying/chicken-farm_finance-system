@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,11 +23,10 @@ import java.util.Optional;
 public class ReportService {
 
     private final FinanceRecordRepository financeRecordRepository;
-    private final ChickenBatchRepository chickenBatchRepository;
+    private final ChickenHouseRepository chickenHouseRepository;
     private final ChickenSaleRepository chickenSaleRepository;
     private final EggSaleRepository eggSaleRepository;
     private final DeathRecordRepository deathRecordRepository;
-    private final FeedRecordRepository feedRecordRepository;
     private final InventoryRepository inventoryRepository;
     private final ProductRepository productRepository;
 
@@ -127,25 +125,27 @@ public class ReportService {
      * 批次利润分析
      */
     public BatchProfitDTO analyzeBatchProfit(Long batchId) {
-        Optional<ChickenBatch> batchOpt = chickenBatchRepository.findById(batchId);
-        if (batchOpt.isEmpty()) {
+        // 这里暂时保持用鸡舍分析，后续需要改为批次分析
+        // 因为销售数据现在关联到批次，需要先找到批次
+        Optional<ChickenHouse> houseOpt = chickenHouseRepository.findById(batchId);
+        if (houseOpt.isEmpty()) {
             return null;
         }
 
-        ChickenBatch batch = batchOpt.get();
+        ChickenHouse house = houseOpt.get();
         BatchProfitDTO dto = new BatchProfitDTO();
 
         dto.setBatchId(batchId);
-        dto.setBatchNo(batch.getBatchNo());
-        dto.setGroupName(batch.getGroupName());
-        dto.setEntryDate(batch.getEntryDate());
-        dto.setSaleDate(batch.getActualSaleDate());
-        dto.setEntryQuantity(batch.getEntryQuantity());
-        dto.setCurrentAge(batch.getCurrentAge());
+        dto.setBatchNo(house.getHouseNo());
+        dto.setGroupName(house.getName());
+        dto.setEntryDate(house.getEntryDate());
+        dto.setSaleDate(house.getActualSaleDate());
+        dto.setEntryQuantity(house.getEntryQuantity());
+        dto.setCurrentAge(house.getCurrentAge());
 
         // 死亡数量
         Integer deathCount = 0;
-        List<DeathRecord> deathRecords = deathRecordRepository.findByBatchId(batchId);
+        List<DeathRecord> deathRecords = deathRecordRepository.findByHouseId(batchId);
         for (DeathRecord record : deathRecords) {
             if (Boolean.TRUE.equals(record.getIsActive())) {
                 deathCount += record.getDeathCount();
@@ -153,7 +153,7 @@ public class ReportService {
         }
         dto.setDeathCount(deathCount);
 
-        // 销售数量
+        // 销售数量 - 现在按批次查询
         Integer saleQuantity = 0;
         BigDecimal totalIncome = BigDecimal.ZERO;
         List<ChickenSale> sales = chickenSaleRepository.findByBatchId(batchId);
@@ -167,15 +167,14 @@ public class ReportService {
         dto.setTotalIncome(totalIncome);
 
         // 剩余数量
-        dto.setRemainingQuantity(batch.getCurrentQuantity());
+        dto.setRemainingQuantity(house.getCurrentQuantity());
 
         // 进雏成本
-        BigDecimal entryCost = batch.getEntryTotalCost() != null ? batch.getEntryTotalCost() : BigDecimal.ZERO;
+        BigDecimal entryCost = house.getEntryTotalCost() != null ? house.getEntryTotalCost() : BigDecimal.ZERO;
         dto.setEntryCost(entryCost);
 
-        // 饲料成本
-        BigDecimal feedCost = feedRecordRepository.sumCostByBatchId(batchId);
-        if (feedCost == null) feedCost = BigDecimal.ZERO;
+        // 饲料成本（暂设为0，可通过财务记录查询）
+        BigDecimal feedCost = BigDecimal.ZERO;
         dto.setFeedCost(feedCost);
 
         // 其他成本（暂定为0，可后续扩展）
@@ -187,7 +186,7 @@ public class ReportService {
         dto.setTotalCost(totalCost);
 
         // 单只成本
-        Integer totalChicken = batch.getEntryQuantity();
+        Integer totalChicken = house.getEntryQuantity();
         if (totalChicken != null && totalChicken > 0) {
             dto.setUnitCost(totalCost.divide(BigDecimal.valueOf(totalChicken), 2, RoundingMode.HALF_UP));
         }
@@ -213,22 +212,22 @@ public class ReportService {
         }
 
         // 日均利润
-        if (batch.getCurrentAge() != null && batch.getCurrentAge() > 0) {
-            dto.setAvgDailyProfit(grossProfit.divide(BigDecimal.valueOf(batch.getCurrentAge()), 2, RoundingMode.HALF_UP));
+        if (house.getCurrentAge() != null && house.getCurrentAge() > 0) {
+            dto.setAvgDailyProfit(grossProfit.divide(BigDecimal.valueOf(house.getCurrentAge()), 2, RoundingMode.HALF_UP));
         }
 
         return dto;
     }
 
     /**
-     * 获取所有活跃批次的利润分析
+     * 获取所有活跃鸡舍的利润分析
      */
     public List<BatchProfitDTO> getAllBatchProfits() {
-        List<ChickenBatch> batches = chickenBatchRepository.findByIsActiveTrue();
+        List<ChickenHouse> houses = chickenHouseRepository.findHousesWithBatch();
         List<BatchProfitDTO> results = new ArrayList<>();
         
-        for (ChickenBatch batch : batches) {
-            BatchProfitDTO dto = analyzeBatchProfit(batch.getId());
+        for (ChickenHouse house : houses) {
+            BatchProfitDTO dto = analyzeBatchProfit(house.getId());
             if (dto != null) {
                 results.add(dto);
             }
@@ -281,8 +280,8 @@ public class ReportService {
     public DashboardOverviewDTO getDashboardOverview() {
         DashboardOverviewDTO dashboard = new DashboardOverviewDTO();
         
-        // 批次统计
-        dashboard.setActiveBatchCount(chickenBatchRepository.countByStatus("ACTIVE"));
+        // 活跃鸡舍统计
+        dashboard.setActiveBatchCount(chickenHouseRepository.countByStatusAndIsActiveTrue("ACTIVE"));
         
         // 今日收入支出
         LocalDate today = LocalDate.now();
@@ -295,12 +294,8 @@ public class ReportService {
         dashboard.setMonthExpense(financeRecordRepository.sumCostByDateRange(monthStart, today));
         
         // 总存栏
-        List<ChickenBatch> activeBatches = chickenBatchRepository.findByStatus("ACTIVE");
-        int totalStock = 0;
-        for (ChickenBatch batch : activeBatches) {
-            totalStock += batch.getCurrentQuantity();
-        }
-        dashboard.setTotalStock(totalStock);
+        Integer totalStock = chickenHouseRepository.sumCurrentQuantity();
+        dashboard.setTotalStock(totalStock != null ? totalStock : 0);
         
         return dashboard;
     }

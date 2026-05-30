@@ -25,9 +25,6 @@ public class Product {
     @Column(name = "unit", nullable = false, length = 10)
     private String unit;
 
-    @Column(name = "purchase_price", precision = 10, scale = 2)
-    private BigDecimal purchasePrice;
-
     @Column(name = "sale_price", precision = 10, scale = 2)
     private BigDecimal salePrice;
 

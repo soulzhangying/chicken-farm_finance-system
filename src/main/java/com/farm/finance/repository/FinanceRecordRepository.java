@@ -95,4 +95,19 @@ public interface FinanceRecordRepository extends JpaRepository<FinanceRecord, Lo
     
     @Query("SELECT SUM(f.amount) FROM FinanceRecord f WHERE f.moneyType = 'COST' AND f.isActive = true")
     BigDecimal sumTotalCost();
+    
+    // ========== 关键词和日期范围搜索 ==========
+    
+    @Query("SELECT f FROM FinanceRecord f WHERE f.isActive = true AND " +
+           "(LOWER(f.recordNo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(f.description) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<FinanceRecord> searchByKeyword(@Param("keyword") String keyword);
+    
+    @Query("SELECT f FROM FinanceRecord f WHERE f.isActive = true AND " +
+           "(:moneyType IS NULL OR f.moneyType = :moneyType) AND " +
+           "(:startDate IS NULL OR f.recordDate >= :startDate) AND " +
+           "(:endDate IS NULL OR f.recordDate <= :endDate)")
+    List<FinanceRecord> searchByTypeAndDateRange(@Param("moneyType") String moneyType,
+                                                   @Param("startDate") LocalDate startDate,
+                                                   @Param("endDate") LocalDate endDate);
 }

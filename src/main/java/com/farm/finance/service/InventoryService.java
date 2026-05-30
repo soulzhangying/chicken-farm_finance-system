@@ -40,8 +40,20 @@ public class InventoryService {
         return inventoryRepository.findByProductId(productId);
     }
     
-    public List<Inventory> findByBatchNo(String batchNo) {
-        return inventoryRepository.findByBatchNo(batchNo);
+    public List<Inventory> findByHouseId(Long houseId) {
+        return inventoryRepository.findByHouseId(houseId);
+    }
+    
+    public List<Inventory> findByBatchId(Long batchId) {
+        return inventoryRepository.findByBatchId(batchId);
+    }
+    
+    public List<Inventory> findByProductIdAndBatchId(Long productId, Long batchId) {
+        return inventoryRepository.findByProductIdAndBatchId(productId, batchId);
+    }
+    
+    public List<Inventory> findByProductIdAndHouseId(Long productId, Long houseId) {
+        return inventoryRepository.findByProductIdAndHouseId(productId, houseId);
     }
     
     public List<Inventory> findByUnit(String unit) {
@@ -86,8 +98,8 @@ public class InventoryService {
     
     // ========== 组合搜索 ==========
     
-    public Page<Inventory> search(Long productId, Boolean status, Boolean isActive, Pageable pageable) {
-        return inventoryRepository.search(productId, status, isActive, pageable);
+    public Page<Inventory> search(Long productId, Long houseId, Long batchId, Boolean status, Boolean isActive, Pageable pageable) {
+        return inventoryRepository.search(productId, houseId, batchId, status, isActive, pageable);
     }
     
     // ========== 时间范围查询 ==========
@@ -126,5 +138,11 @@ public class InventoryService {
             inventory.setIsActive(false);
             inventoryRepository.save(inventory);
         });
+    }
+    
+    // ========== 关键词搜索 ==========
+    
+    public List<Inventory> searchByKeyword(String keyword) {
+        return inventoryRepository.searchByKeyword(keyword);
     }
 }

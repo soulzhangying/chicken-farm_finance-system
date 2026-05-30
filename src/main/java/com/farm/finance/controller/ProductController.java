@@ -91,13 +91,6 @@ public class ProductController {
         return Result.success(productService.findBySalePriceBetween(minPrice, maxPrice));
     }
     
-    @GetMapping("/purchase-price")
-    public Result<List<Product>> findByPurchasePriceBetween(
-            @RequestParam BigDecimal minPrice,
-            @RequestParam BigDecimal maxPrice) {
-        return Result.success(productService.findByPurchasePriceBetween(minPrice, maxPrice));
-    }
-    
     // ========== 分页查询 ==========
     
     @GetMapping("/page")
@@ -157,6 +150,11 @@ public class ProductController {
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
         return Result.success(productService.searchWithPrice(productType, minPrice, maxPrice, isActive, pageable));
+    }
+    
+    @GetMapping("/search/keyword")
+    public Result<List<Product>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(productService.searchByKeyword(keyword));
     }
     
     // ========== 时间范围查询 ==========

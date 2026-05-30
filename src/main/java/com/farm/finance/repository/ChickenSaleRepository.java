@@ -77,4 +77,35 @@ public interface ChickenSaleRepository extends JpaRepository<ChickenSale, Long> 
     
     @Query("SELECT SUM(c.totalAmount) FROM ChickenSale c WHERE c.batchId = :batchId AND c.isActive = true")
     BigDecimal sumTotalAmountByBatchId(@Param("batchId") Long batchId);
+    
+    // ========== 关键词和日期范围搜索 ==========
+    
+    @Query("SELECT c FROM ChickenSale c JOIN ChickenBatch b ON c.batchId = b.id " +
+           "WHERE c.isActive = true AND " +
+           "(LOWER(b.batchName) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(b.batchNo) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<ChickenSale> searchByKeyword(@Param("keyword") String keyword);
+    
+    @Query("SELECT c FROM ChickenSale c WHERE c.isActive = true AND " +
+           "(:batchId IS NULL OR c.batchId = :batchId) AND " +
+           "(:startDate IS NULL OR c.saleDate >= :startDate) AND " +
+           "(:endDate IS NULL OR c.saleDate <= :endDate)")
+    List<ChickenSale> searchByBatchIdAndDateRange(@Param("batchId") Long batchId,
+                                                   @Param("startDate") LocalDate startDate,
+                                                   @Param("endDate") LocalDate endDate);
+    
+    // ========== 按批次汇总销售额 ==========
+    
+    @Query("SELECT c.batchId, SUM(c.quantity), SUM(c.weight), SUM(c.totalAmount), COUNT(c) " +
+           "FROM ChickenSale c WHERE c.isActive = true " +
+           "GROUP BY c.batchId ORDER BY SUM(c.totalAmount) DESC")
+    List<Object[]> sumByBatchId();
+    
+    @Query("SELECT c.batchId, SUM(c.quantity), SUM(c.weight), SUM(c.totalAmount), COUNT(c) " +
+           "FROM ChickenSale c WHERE c.isActive = true " +
+           "AND (:startDate IS NULL OR c.saleDate >= :startDate) " +
+           "AND (:endDate IS NULL OR c.saleDate <= :endDate) " +
+           "GROUP BY c.batchId ORDER BY SUM(c.totalAmount) DESC")
+    List<Object[]> sumByBatchIdAndDateRange(@Param("startDate") LocalDate startDate,
+                                             @Param("endDate") LocalDate endDate);
 }

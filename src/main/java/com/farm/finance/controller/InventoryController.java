@@ -43,9 +43,28 @@ public class InventoryController {
         return Result.success(inventoryService.findByProductId(productId));
     }
     
-    @GetMapping("/batch-no/{batchNo}")
-    public Result<List<Inventory>> findByBatchNo(@PathVariable String batchNo) {
-        return Result.success(inventoryService.findByBatchNo(batchNo));
+    @GetMapping("/house/{houseId}")
+    public Result<List<Inventory>> findByHouseId(@PathVariable Long houseId) {
+        return Result.success(inventoryService.findByHouseId(houseId));
+    }
+    
+    @GetMapping("/batch/{batchId}")
+    public Result<List<Inventory>> findByBatchId(@PathVariable Long batchId) {
+        return Result.success(inventoryService.findByBatchId(batchId));
+    }
+    
+    @GetMapping("/product/{productId}/batch/{batchId}")
+    public Result<List<Inventory>> findByProductIdAndBatchId(
+            @PathVariable Long productId,
+            @PathVariable Long batchId) {
+        return Result.success(inventoryService.findByProductIdAndBatchId(productId, batchId));
+    }
+    
+    @GetMapping("/product/{productId}/house/{houseId}")
+    public Result<List<Inventory>> findByProductIdAndHouseId(
+            @PathVariable Long productId,
+            @PathVariable Long houseId) {
+        return Result.success(inventoryService.findByProductIdAndHouseId(productId, houseId));
     }
     
     @GetMapping("/unit/{unit}")
@@ -114,6 +133,8 @@ public class InventoryController {
     @GetMapping("/search")
     public Result<Page<Inventory>> search(
             @RequestParam(required = false) Long productId,
+            @RequestParam(required = false) Long houseId,
+            @RequestParam(required = false) Long batchId,
             @RequestParam(required = false) Boolean status,
             @RequestParam(required = false) Boolean isActive,
             @RequestParam(defaultValue = "0") int page,
@@ -122,7 +143,12 @@ public class InventoryController {
             @RequestParam(defaultValue = "desc") String sortDir) {
         Sort sort = sortDir.equalsIgnoreCase("asc") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
         Pageable pageable = PageRequest.of(page, size, sort);
-        return Result.success(inventoryService.search(productId, status, isActive, pageable));
+        return Result.success(inventoryService.search(productId, houseId, batchId, status, isActive, pageable));
+    }
+    
+    @GetMapping("/search/keyword")
+    public Result<List<Inventory>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(inventoryService.searchByKeyword(keyword));
     }
     
     // ========== 统计 ==========

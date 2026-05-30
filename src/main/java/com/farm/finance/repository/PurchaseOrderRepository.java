@@ -79,4 +79,10 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
     
     @Query("SELECT SUM(p.totalAmount) FROM PurchaseOrder p WHERE p.paymentStatus = :paymentStatus AND p.isActive = true")
     BigDecimal sumAmountByPaymentStatus(@Param("paymentStatus") String paymentStatus);
+    
+    // ========== 关键词搜索 ==========
+    
+    @Query("SELECT p FROM PurchaseOrder p WHERE p.isActive = true AND " +
+           "(LOWER(p.orderNo) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<PurchaseOrder> searchByKeyword(@Param("keyword") String keyword);
 }

@@ -20,7 +20,13 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     
     List<Inventory> findByProductId(Long productId);
     
-    List<Inventory> findByBatchNo(String batchNo);
+    List<Inventory> findByHouseId(Long houseId);
+    
+    List<Inventory> findByBatchId(Long batchId);
+    
+    List<Inventory> findByProductIdAndBatchId(Long productId, Long batchId);
+    
+    List<Inventory> findByProductIdAndHouseId(Long productId, Long houseId);
     
     List<Inventory> findByUnit(String unit);
     
@@ -48,9 +54,13 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     
     @Query("SELECT i FROM Inventory i WHERE " +
            "(:productId IS NULL OR i.productId = :productId) AND " +
+           "(:houseId IS NULL OR i.houseId = :houseId) AND " +
+           "(:batchId IS NULL OR i.batchId = :batchId) AND " +
            "(:status IS NULL OR i.status = :status) AND " +
            "(:isActive IS NULL OR i.isActive = :isActive)")
     Page<Inventory> search(@Param("productId") Long productId,
+                            @Param("houseId") Long houseId,
+                            @Param("batchId") Long batchId,
                             @Param("status") Boolean status,
                             @Param("isActive") Boolean isActive,
                             Pageable pageable);
@@ -67,4 +77,12 @@ public interface InventoryRepository extends JpaRepository<Inventory, Long> {
     
     @Query("SELECT SUM(i.quantity) FROM Inventory i WHERE i.status = true AND i.isActive = true")
     BigDecimal sumTotalQuantity();
+    
+    // ========== 关键词搜索 ==========
+    
+    @Query("SELECT i FROM Inventory i JOIN ChickenHouse h ON i.houseId = h.id WHERE i.isActive = true AND " +
+           "(LOWER(h.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(h.houseNo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(i.location) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Inventory> searchByKeyword(@Param("keyword") String keyword);
 }

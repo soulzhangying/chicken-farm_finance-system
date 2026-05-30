@@ -68,10 +68,14 @@ public class ChickenHouseService {
         return chickenHouseRepository.findByIsActiveTrue();
     }
     
-    // ========== 自定义查询 ==========
+    // ========== 批次相关查询（原ChickenBatch功能） ==========
     
     public List<ChickenHouse> findActiveHouses() {
         return chickenHouseRepository.findActiveHouses();
+    }
+    
+    public List<ChickenHouse> findHousesWithBatch() {
+        return chickenHouseRepository.findHousesWithBatch();
     }
     
     public Integer getTotalCapacity() {
@@ -114,6 +118,16 @@ public class ChickenHouseService {
         return chickenHouseRepository.getTotalArea();
     }
     
+    // ========== 存栏统计 ==========
+    
+    public Integer sumCurrentQuantity() {
+        return chickenHouseRepository.sumCurrentQuantity();
+    }
+    
+    public Integer sumEntryQuantity() {
+        return chickenHouseRepository.sumEntryQuantity();
+    }
+    
     // ========== 保存和删除 ==========
     
     public ChickenHouse save(ChickenHouse house) {
@@ -124,9 +138,9 @@ public class ChickenHouseService {
     }
     
     public void deleteById(Long id) {
-        chickenHouseRepository.findById(id).ifPresent(house -> {
-            house.setIsActive(false);
-            chickenHouseRepository.save(house);
+        chickenHouseRepository.findById(id).ifPresent(h -> {
+            h.setIsActive(false);
+            chickenHouseRepository.save(h);
         });
     }
     
@@ -138,5 +152,11 @@ public class ChickenHouseService {
     
     public boolean existsByName(String name) {
         return chickenHouseRepository.existsByName(name);
+    }
+    
+    // ========== 关键词搜索 ==========
+    
+    public List<ChickenHouse> searchByKeyword(String keyword) {
+        return chickenHouseRepository.searchByKeyword(keyword);
     }
 }

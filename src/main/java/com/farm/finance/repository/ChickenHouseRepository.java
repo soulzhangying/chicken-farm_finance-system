@@ -40,14 +40,21 @@ public interface ChickenHouseRepository extends JpaRepository<ChickenHouse, Long
     
     List<ChickenHouse> findByIsActiveTrue();
     
+    // ========== 批次相关查询（原ChickenBatch功能） ==========
+    
+    List<ChickenHouse> findByStatusIn(List<String> statuses);
+    
+    @Query("SELECT h FROM ChickenHouse h WHERE h.status = 'ACTIVE' AND h.isActive = true ORDER BY h.houseNo")
+    List<ChickenHouse> findActiveHouses();
+    
+    @Query("SELECT h FROM ChickenHouse h WHERE h.entryDate IS NOT NULL AND h.isActive = true ORDER BY h.entryDate DESC")
+    List<ChickenHouse> findHousesWithBatch();
+    
     // ========== 分页查询 ==========
     
     Page<ChickenHouse> findByStatus(String status, Pageable pageable);
     
     // ========== 自定义查询 ==========
-    
-    @Query("SELECT h FROM ChickenHouse h WHERE h.status = 'ACTIVE' AND h.isActive = true ORDER BY h.houseNo")
-    List<ChickenHouse> findActiveHouses();
     
     @Query("SELECT SUM(h.capacity) FROM ChickenHouse h WHERE h.status = 'ACTIVE' AND h.isActive = true")
     Integer getTotalCapacity();
@@ -74,4 +81,19 @@ public interface ChickenHouseRepository extends JpaRepository<ChickenHouse, Long
     
     @Query("SELECT SUM(h.area) FROM ChickenHouse h WHERE h.isActive = true")
     BigDecimal getTotalArea();
+    
+    // ========== 存栏统计 ==========
+    
+    @Query("SELECT SUM(h.currentQuantity) FROM ChickenHouse h WHERE h.status = 'ACTIVE' AND h.isActive = true")
+    Integer sumCurrentQuantity();
+    
+    @Query("SELECT SUM(h.entryQuantity) FROM ChickenHouse h WHERE h.status = 'ACTIVE' AND h.isActive = true")
+    Integer sumEntryQuantity();
+    
+    // ========== 关键词搜索 ==========
+    
+    @Query("SELECT h FROM ChickenHouse h WHERE h.isActive = true AND " +
+           "(LOWER(h.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(h.houseNo) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<ChickenHouse> searchByKeyword(@Param("keyword") String keyword);
 }

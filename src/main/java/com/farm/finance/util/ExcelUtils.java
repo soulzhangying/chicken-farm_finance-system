@@ -75,9 +75,15 @@ public class ExcelUtils {
         try (Workbook workbook = WorkbookFactory.create(inputStream)) {
             Sheet sheet = workbook.getSheetAt(0);
             
+            // 获取第一行（表头）来确定总列数
+            Row headerRow = sheet.getRow(0);
+            int totalColumns = headerRow != null ? headerRow.getLastCellNum() : 0;
+            
             for (Row row : sheet) {
                 List<String> rowData = new ArrayList<>();
-                for (Cell cell : row) {
+                int colCount = Math.max(totalColumns, row.getLastCellNum());
+                for (int i = 0; i < colCount; i++) {
+                    Cell cell = row.getCell(i);
                     rowData.add(getCellValue(cell));
                 }
                 data.add(rowData);

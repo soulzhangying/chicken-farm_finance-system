@@ -75,4 +75,12 @@ public interface SupplierRepository extends JpaRepository<Supplier, Long> {
     long countByIsActiveTrue();
     
     boolean existsByPhone(String phone);
+    
+    // ========== 关键词搜索 ==========
+    
+    @Query("SELECT s FROM Supplier s WHERE s.isActive = true AND " +
+           "(LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(s.supplierNo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(s.phone) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Supplier> searchByKeyword(@Param("keyword") String keyword);
 }

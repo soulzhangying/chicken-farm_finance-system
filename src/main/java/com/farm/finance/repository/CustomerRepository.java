@@ -69,4 +69,12 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
     long countByIsActiveTrue();
     
     boolean existsByPhone(String phone);
+    
+    // ========== 关键词搜索 ==========
+    
+    @Query("SELECT c FROM Customer c WHERE c.isActive = true AND " +
+           "(LOWER(c.name) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(c.customerNo) LIKE LOWER(CONCAT('%', :keyword, '%')) OR " +
+           "LOWER(c.phone) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<Customer> searchByKeyword(@Param("keyword") String keyword);
 }

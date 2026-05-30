@@ -141,6 +141,11 @@ public class SalesOrderController {
         return Result.success(salesOrderService.search(customerId, paymentStatus, orderStatus, isActive, pageable));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<SalesOrder>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(salesOrderService.searchByKeyword(keyword));
+    }
+    
     // ========== 时间范围查询 ==========
     
     @GetMapping("/created-time")

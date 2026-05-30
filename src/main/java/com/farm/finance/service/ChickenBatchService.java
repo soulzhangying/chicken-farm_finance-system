@@ -8,152 +8,73 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class ChickenBatchService {
     
     private final ChickenBatchRepository chickenBatchRepository;
-    
-    // ========== 基本查询 ==========
     
     public List<ChickenBatch> findAll() {
         return chickenBatchRepository.findAll();
     }
     
-    public Page<ChickenBatch> findAll(Pageable pageable) {
-        return chickenBatchRepository.findAll(pageable);
+    public List<ChickenBatch> findAllActive() {
+        return chickenBatchRepository.findByIsActiveTrueOrderByCreatedTimeDesc();
     }
     
     public Optional<ChickenBatch> findById(Long id) {
-        return chickenBatchRepository.findById(id);
+        return chickenBatchRepository.findByIdAndIsActiveTrue(id);
     }
     
     public Optional<ChickenBatch> findByBatchNo(String batchNo) {
         return chickenBatchRepository.findByBatchNo(batchNo);
     }
     
-    // ========== 按字段查询 ==========
-    
     public List<ChickenBatch> findByHouseId(Long houseId) {
-        return chickenBatchRepository.findByHouseId(houseId);
-    }
-    
-    public List<ChickenBatch> findBySupplierId(Long supplierId) {
-        return chickenBatchRepository.findBySupplierId(supplierId);
-    }
-    
-    public List<ChickenBatch> findByGroupName(String groupName) {
-        return chickenBatchRepository.findByGroupName(groupName);
-    }
-    
-    public List<ChickenBatch> findByBreed(String breed) {
-        return chickenBatchRepository.findByBreed(breed);
+        return chickenBatchRepository.findByHouseIdAndIsActiveTrue(houseId);
     }
     
     public List<ChickenBatch> findByStatus(String status) {
         return chickenBatchRepository.findByStatus(status);
     }
     
-    public List<ChickenBatch> findByIsActive(Boolean isActive) {
-        return chickenBatchRepository.findByIsActive(isActive);
+    public List<ChickenBatch> searchByKeyword(String keyword) {
+        return chickenBatchRepository.searchByKeyword(keyword);
     }
     
-    public List<ChickenBatch> findByIsActiveTrue() {
-        return chickenBatchRepository.findByIsActiveTrue();
+    public Page<ChickenBatch> search(Long houseId, String status, Pageable pageable) {
+        return chickenBatchRepository.search(houseId, status, pageable);
     }
     
-    // ========== 日期范围查询 ==========
-    
-    public List<ChickenBatch> findByEntryDateBetween(LocalDate startDate, LocalDate endDate) {
-        return chickenBatchRepository.findByEntryDateBetween(startDate, endDate);
-    }
-    
-    public List<ChickenBatch> findByExpectedSaleDateBetween(LocalDate startDate, LocalDate endDate) {
-        return chickenBatchRepository.findByExpectedSaleDateBetween(startDate, endDate);
-    }
-    
-    public List<ChickenBatch> findByActualSaleDateBetween(LocalDate startDate, LocalDate endDate) {
-        return chickenBatchRepository.findByActualSaleDateBetween(startDate, endDate);
-    }
-    
-    // ========== 分页查询 ==========
-    
-    public Page<ChickenBatch> findByHouseId(Long houseId, Pageable pageable) {
-        return chickenBatchRepository.findByHouseId(houseId, pageable);
-    }
-    
-    public Page<ChickenBatch> findByStatus(String status, Pageable pageable) {
-        return chickenBatchRepository.findByStatus(status, pageable);
-    }
-    
-    // ========== 自定义查询 ==========
-    
-    public List<ChickenBatch> findActiveBatches() {
-        return chickenBatchRepository.findActiveBatches();
-    }
-    
-    public Integer getTotalActiveQuantity() {
-        return chickenBatchRepository.getTotalActiveQuantity();
-    }
-    
-    public List<ChickenBatch> findBatchesReadyForSale(LocalDate date) {
-        return chickenBatchRepository.findBatchesReadyForSale(date);
-    }
-    
-    // ========== 组合搜索 ==========
-    
-    public Page<ChickenBatch> search(Long houseId, Long supplierId, String status, 
-                                      Boolean isActive, Pageable pageable) {
-        return chickenBatchRepository.search(houseId, supplierId, status, isActive, pageable);
-    }
-    
-    // ========== 时间范围查询 ==========
-    
-    public List<ChickenBatch> findByCreatedTimeBetween(LocalDateTime startTime, LocalDateTime endTime) {
-        return chickenBatchRepository.findByCreatedTimeBetween(startTime, endTime);
-    }
-    
-    // ========== 统计 ==========
-    
-    public long countByIsActiveTrue() {
-        return chickenBatchRepository.countByIsActiveTrue();
-    }
-    
-    public long countByStatus(String status) {
-        return chickenBatchRepository.countByStatus(status);
-    }
-    
-    public long countByStatusAndIsActiveTrue(String status) {
-        return chickenBatchRepository.countByStatusAndIsActiveTrue(status);
-    }
-    
-    public Integer getTotalEntryQuantity() {
-        return chickenBatchRepository.getTotalEntryQuantity();
-    }
-    
-    public Integer getTotalCurrentQuantity() {
-        return chickenBatchRepository.getTotalCurrentQuantity();
-    }
-    
-    public Integer getTotalDeathCount() {
-        return chickenBatchRepository.getTotalDeathCount();
-    }
-    
-    // ========== 保存和删除 ==========
-    
+    @Transactional
     public ChickenBatch save(ChickenBatch batch) {
-        if (batch.getCreatedTime() == null) {
+        if (batch.getId() == null) {
             batch.setCreatedTime(LocalDateTime.now());
+            if (batch.getIsActive() == null) {
+                batch.setIsActive(true);
+            }
+            if (batch.getStatus() == null) {
+                batch.setStatus("ACTIVE");
+            }
+            if (batch.getTotalDeathCount() == null) {
+                batch.setTotalDeathCount(0);
+            }
+            if (batch.getCurrentAge() == null) {
+                batch.setCurrentAge(0);
+            }
+            // 如果没有设置当前数量，默认为入场数量
+            if (batch.getCurrentQuantity() == null && batch.getEntryQuantity() != null) {
+                batch.setCurrentQuantity(batch.getEntryQuantity());
+            }
         }
         return chickenBatchRepository.save(batch);
     }
     
+    @Transactional
     public void deleteById(Long id) {
         chickenBatchRepository.findById(id).ifPresent(batch -> {
             batch.setIsActive(false);
@@ -161,9 +82,21 @@ public class ChickenBatchService {
         });
     }
     
-    // ========== 存在性检查 ==========
-    
     public boolean existsByBatchNo(String batchNo) {
         return chickenBatchRepository.existsByBatchNo(batchNo);
+    }
+    
+    public boolean existsByBatchName(String batchName) {
+        return chickenBatchRepository.existsByBatchName(batchName);
+    }
+    
+    public Integer sumEntryQuantity() {
+        Integer sum = chickenBatchRepository.sumEntryQuantity();
+        return sum != null ? sum : 0;
+    }
+    
+    public Integer sumCurrentQuantity() {
+        Integer sum = chickenBatchRepository.sumCurrentQuantity();
+        return sum != null ? sum : 0;
     }
 }

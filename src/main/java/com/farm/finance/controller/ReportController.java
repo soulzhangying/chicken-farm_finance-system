@@ -40,22 +40,22 @@ public class ReportController {
     }
 
     /**
-     * 批次利润分析
+     * 鸡舍利润分析
      */
-    @GetMapping("/batch-profit/{batchId}")
-    public Result<BatchProfitDTO> analyzeBatchProfit(@PathVariable Long batchId) {
-        BatchProfitDTO result = reportService.analyzeBatchProfit(batchId);
+    @GetMapping("/house-profit/{houseId}")
+    public Result<BatchProfitDTO> analyzeHouseProfit(@PathVariable Long houseId) {
+        BatchProfitDTO result = reportService.analyzeBatchProfit(houseId);
         if (result == null) {
-            return Result.error(404, "批次不存在");
+            return Result.error(404, "鸡舍不存在");
         }
         return Result.success(result);
     }
 
     /**
-     * 所有批次利润分析
+     * 所有鸡舍利润分析
      */
-    @GetMapping("/batch-profits")
-    public Result<List<BatchProfitDTO>> getAllBatchProfits() {
+    @GetMapping("/house-profits")
+    public Result<List<BatchProfitDTO>> getAllHouseProfits() {
         return Result.success(reportService.getAllBatchProfits());
     }
 

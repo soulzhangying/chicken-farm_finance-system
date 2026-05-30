@@ -34,14 +34,14 @@ public class ChickenSaleController {
     public Result<ChickenSale> findById(@PathVariable Long id) {
         return chickenSaleService.findById(id)
                 .map(Result::success)
-                .orElse(Result.error(404, "肉鸡出栏记录不存在"));
+                .orElse(Result.error(404, "肉鸡销售记录不存在"));
     }
     
     @GetMapping("/sale-no/{saleNo}")
     public Result<ChickenSale> findBySaleNo(@PathVariable String saleNo) {
         return chickenSaleService.findBySaleNo(saleNo)
                 .map(Result::success)
-                .orElse(Result.error(404, "肉鸡出栏记录不存在"));
+                .orElse(Result.error(404, "肉鸡销售记录不存在"));
     }
     
     // ========== 按字段查询 ==========
@@ -127,6 +127,19 @@ public class ChickenSaleController {
         return Result.success(chickenSaleService.search(batchId, customerId, isActive, pageable));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<ChickenSale>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(chickenSaleService.searchByKeyword(keyword));
+    }
+    
+    @GetMapping("/search/date-range")
+    public Result<List<ChickenSale>> searchByDateRange(
+            @RequestParam(required = false) Long batchId,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return Result.success(chickenSaleService.searchByBatchIdAndDateRange(batchId, startDate, endDate));
+    }
+    
     // ========== 时间范围查询 ==========
     
     @GetMapping("/created-time")
@@ -168,6 +181,20 @@ public class ChickenSaleController {
         return Result.success(chickenSaleService.sumTotalAmountByBatchId(batchId));
     }
     
+    // ========== 按批次汇总销售额 ==========
+    
+    @GetMapping("/summary/by-batch")
+    public Result<List<Object[]>> sumByBatchId() {
+        return Result.success(chickenSaleService.sumByBatchId());
+    }
+    
+    @GetMapping("/summary/by-batch/date-range")
+    public Result<List<Object[]>> sumByBatchIdAndDateRange(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return Result.success(chickenSaleService.sumByBatchIdAndDateRange(startDate, endDate));
+    }
+    
     // ========== 创建和更新 ==========
     
     @PostMapping
@@ -185,7 +212,7 @@ public class ChickenSaleController {
                     sale.setId(id);
                     return Result.success("更新成功", chickenSaleService.save(sale));
                 })
-                .orElse(Result.error(404, "肉鸡出栏记录不存在"));
+                .orElse(Result.error(404, "肉鸡销售记录不存在"));
     }
     
     // ========== 删除 ==========
@@ -193,7 +220,7 @@ public class ChickenSaleController {
     @DeleteMapping("/{id}")
     public Result<Void> delete(@PathVariable Long id) {
         if (chickenSaleService.findById(id).isEmpty()) {
-            return Result.error(404, "肉鸡出栏记录不存在");
+            return Result.error(404, "肉鸡销售记录不存在");
         }
         chickenSaleService.deleteById(id);
         return Result.success();

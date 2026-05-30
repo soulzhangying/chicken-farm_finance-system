@@ -169,6 +169,19 @@ public class FinanceRecordController {
         return Result.success(financeRecordService.search(moneyType, costType, incomeType, customerId, supplierId, isActive, pageable));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<FinanceRecord>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(financeRecordService.searchByKeyword(keyword));
+    }
+    
+    @GetMapping("/search/date-range")
+    public Result<List<FinanceRecord>> searchByDateRange(
+            @RequestParam(required = false) String moneyType,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return Result.success(financeRecordService.searchByTypeAndDateRange(moneyType, startDate, endDate));
+    }
+    
     // ========== 时间范围查询 ==========
     
     @GetMapping("/created-time")

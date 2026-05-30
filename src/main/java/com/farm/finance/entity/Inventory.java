@@ -16,8 +16,11 @@ public class Inventory {
     @Column(name = "product_id", nullable = false)
     private Long productId;
 
-    @Column(name = "batch_no", length = 20)
-    private String batchNo;
+    @Column(name = "house_id")
+    private Long houseId;
+
+    @Column(name = "batch_id")
+    private Long batchId;
 
     @Column(name = "quantity", nullable = false, precision = 10, scale = 2)
     private BigDecimal quantity;

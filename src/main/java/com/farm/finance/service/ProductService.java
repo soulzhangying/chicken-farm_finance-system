@@ -78,10 +78,6 @@ public class ProductService {
         return productRepository.findBySalePriceBetween(minPrice, maxPrice);
     }
     
-    public List<Product> findByPurchasePriceBetween(BigDecimal minPrice, BigDecimal maxPrice) {
-        return productRepository.findByPurchasePriceBetween(minPrice, maxPrice);
-    }
-    
     // ========== 分页查询 ==========
     
     public Page<Product> findByProductType(String productType, Pageable pageable) {
@@ -151,5 +147,11 @@ public class ProductService {
     
     public boolean existsByName(String name) {
         return productRepository.existsByName(name);
+    }
+    
+    // ========== 关键词搜索 ==========
+    
+    public List<Product> searchByKeyword(String keyword) {
+        return productRepository.searchByKeyword(keyword);
     }
 }

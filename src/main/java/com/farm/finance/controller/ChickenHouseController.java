@@ -78,12 +78,19 @@ public class ChickenHouseController {
     
     @GetMapping("/active")
     public Result<List<ChickenHouse>> findActiveHouses() {
-        return Result.success(chickenHouseService.findActiveHouses());
+        return Result.success(chickenHouseService.findByIsActiveTrue());
     }
     
     @GetMapping("/is-active/{isActive}")
     public Result<List<ChickenHouse>> findByIsActive(@PathVariable Boolean isActive) {
         return Result.success(chickenHouseService.findByIsActive(isActive));
+    }
+    
+    // ========== 批次相关查询 ==========
+    
+    @GetMapping("/with-batch")
+    public Result<List<ChickenHouse>> findHousesWithBatch() {
+        return Result.success(chickenHouseService.findHousesWithBatch());
     }
     
     // ========== 分页查询 ==========
@@ -123,6 +130,11 @@ public class ChickenHouseController {
         return Result.success(chickenHouseService.search(status, isActive, pageable));
     }
     
+    @GetMapping("/search/keyword")
+    public Result<List<ChickenHouse>> searchByKeyword(@RequestParam String keyword) {
+        return Result.success(chickenHouseService.searchByKeyword(keyword));
+    }
+    
     // ========== 特殊查询 ==========
     
     @GetMapping("/total-capacity")
@@ -133,6 +145,13 @@ public class ChickenHouseController {
     @GetMapping("/total-area")
     public Result<BigDecimal> getTotalArea() {
         return Result.success(chickenHouseService.getTotalArea());
+    }
+    
+    // ========== 存栏统计 ==========
+    
+    @GetMapping("/total-stock")
+    public Result<Integer> getTotalStock() {
+        return Result.success(chickenHouseService.sumCurrentQuantity());
     }
     
     // ========== 时间范围查询 ==========
@@ -170,6 +189,11 @@ public class ChickenHouseController {
         }
         if (chickenHouseService.existsByName(house.getName())) {
             return Result.error(409, "鸡舍名称已存在");
+        }
+        house.setCreatedTime(LocalDateTime.now());
+        house.setIsActive(true);
+        if (house.getStatus() == null) {
+            house.setStatus("EMPTY");
         }
         return Result.success("创建成功", chickenHouseService.save(house));
     }

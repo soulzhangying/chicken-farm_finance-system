@@ -79,4 +79,16 @@ public interface EggSaleRepository extends JpaRepository<EggSale, Long> {
     
     @Query("SELECT SUM(s.saleQuantity) FROM EggSale s WHERE s.isActive = true")
     Integer sumTotalQuantity();
+    
+    // ========== 关键词和日期范围搜索 ==========
+    
+    @Query("SELECT s FROM EggSale s WHERE s.isActive = true AND " +
+           "(LOWER(s.saleNo) LIKE LOWER(CONCAT('%', :keyword, '%')))")
+    List<EggSale> searchByKeyword(@Param("keyword") String keyword);
+    
+    @Query("SELECT s FROM EggSale s WHERE s.isActive = true AND " +
+           "(:startDate IS NULL OR s.saleDate >= :startDate) AND " +
+           "(:endDate IS NULL OR s.saleDate <= :endDate)")
+    List<EggSale> searchByDateRange(@Param("startDate") LocalDate startDate,
+                                     @Param("endDate") LocalDate endDate);
 }
